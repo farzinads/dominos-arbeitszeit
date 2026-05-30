@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dominos Arbeitszeit</title>
+<!-- PWA / iPhone Home-Screen Einstellungen -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Dominos Arbeitszeit">
+<meta name="theme-color" content="#1f2023">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+
+<style>
+:root{
+  --bg:#1f2023;--panel:#2b2d31;--card:#303238;--line:#4b4f58;
+  --text:#f1f3f4;--muted:#b7bbc5;--accent:#8ab4f8;--accent2:#5f8fd6;
+  --good:#8fd7a5;--warn:#ffd166;--bad:#ff9aa2;--work:#263f32;--weekend:#382d31;--empty:#25272b;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Helvetica,sans-serif;line-height:1.24;font-size:13px}
+.wrap{max-width:none;margin:0;padding:10px 10px 10px 6px}
+.header{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:2px 0 9px;flex-wrap:wrap}
+h1{font-size:20px;margin:0}.monthTitle{font-size:16px;font-weight:900;color:var(--accent)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:10px;box-shadow:0 8px 22px rgba(0,0,0,.20)}
+.topbar{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;margin-bottom:0}.actions{display:flex;gap:5px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+button,.btn{border:1px solid #657083;background:#3d4652;color:var(--text);padding:7px 9px;border-radius:8px;font-size:10.5px;font-weight:800;cursor:pointer;text-align:center}
+button:hover,.btn:hover{filter:brightness(1.12)}.primary{background:var(--accent2);border-color:#88b8ff}.danger{background:#68363d;border-color:#9b5860}.ghost{background:#34373d}.mini{font-size:10px;padding:6px 8px;border-radius:7px}
+.filebox{display:inline-flex;align-items:center;justify-content:center}.filebox input{position:absolute;left:-9999px}.fileName{font-size:10px;color:var(--muted);margin-top:3px;word-break:break-word}
+.notice{margin:0 0 8px;background:#293747;border:1px solid #577aa4;border-radius:9px;padding:8px 9px;color:#eaf3ff;font-size:12px}.notice.ok{background:#263a30;border-color:#60936f}.notice.warn{background:#433b25;border-color:#927d3e}.notice.error{background:#452b2f;border-color:#9b5960}.hidden{display:none!important}
+.payPanel{margin-top:9px}.payGrid{display:grid;grid-template-columns:1.1fr auto 1fr 1fr;gap:7px;align-items:end}.field label{display:block;color:var(--muted);font-size:10px;font-weight:800;margin-bottom:5px}
+input[type=text],input[type=date]{width:100%;border:1px solid #5b606b;background:#3a3d44;color:var(--text);padding:8px 9px;border-radius:8px;font-size:12px;outline:none}input:focus{border-color:var(--accent)}.readonly{opacity:.9}.paymentBox{min-height:420px}.paymentGrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.paymentWide{grid-column:1/-1}.paymentTotals{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:10px 0}.payStat{background:#25272d;border:1px solid #4a4f59;border-radius:9px;padding:8px}.payStat .label{color:var(--muted);font-size:10px;font-weight:800;margin-bottom:3px}.payStat .value{font-size:13px;font-weight:900;color:var(--accent)}.payStat.good .value{color:var(--good)}.payStat.warn .value{color:var(--warn)}.payStat.bad .value{color:var(--bad)}.paymentTableWrap{max-height:260px;overflow:auto;border:1px solid #4a4f59;border-radius:9px;margin-top:8px}.paymentTableWrap table{margin:0}.paymentTableWrap th{position:sticky;top:0;background:#2b2d31}.paymentTableWrap .emptyPay{padding:10px;color:var(--muted);font-size:11px}.tinyInput{padding:7px 8px!important;font-size:11.5px!important}
+.summary{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px;margin:0 0 8px}.sum{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:6px 5px;min-width:0}.sum .label{color:var(--muted);font-size:8.5px;font-weight:800;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.sum .value{font-size:11.5px;font-weight:900;color:var(--accent);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.sum.good .value{color:var(--good)}.sum.warn .value{color:var(--warn)}.sum.bad .value{color:var(--bad)}
+.main{display:grid;grid-template-columns:900px minmax(420px,620px);gap:12px;align-items:start;justify-content:start}.calendarColumn{width:900px}.sideGrid{display:block}.paymentBox{margin:0;min-height:320px}.paymentBox h3{font-size:15px}.paymentBox .payGrid{grid-template-columns:1fr;gap:10px}.paymentBox .field label{font-size:11px}.paymentBox .smallActions{margin-top:12px}.paymentBox button,.paymentBox .btn{font-size:11.5px;padding:8px 10px}.calHead{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:7px}.calHead h2{margin:0;font-size:14px}.rangeInfo{color:var(--muted);font-size:9.5px;margin-top:1px}.calNav{display:flex;gap:4px}
+.weekdays,.calendar{display:grid;grid-template-columns:repeat(8,1fr);gap:5px}.weekday{text-align:center;background:#26282d;border:1px solid #444851;border-radius:7px;padding:6px;color:var(--muted);font-weight:900;font-size:10.5px}.weekday.kwHead{color:var(--accent);background:#2e3540}.day{min-height:86px;background:var(--card);border:1px solid var(--line);border-radius:9px;padding:6px;overflow:hidden}.day.empty{background:var(--empty);opacity:.45;border-style:dashed}.day.weekend{background:var(--weekend)}.day.work{background:var(--work);border-color:#6f986e}.dateLine{display:flex;justify-content:space-between;font-weight:900;font-size:12px}.muted{color:var(--muted);font-size:9.8px}.time{margin-top:4px;background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.08);border-radius:7px;padding:4px;font-size:9.3px}.duration{margin-top:4px;font-weight:900;color:var(--good);font-size:11px}.weekTotal{min-height:86px;background:#263342;border:1px solid #58718c;border-radius:9px;padding:6px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center}.weekTotal .kwNo{font-size:10px;color:var(--accent);font-weight:900}.weekTotal .kwSum{font-size:12px;color:var(--good);font-weight:900;margin-top:5px}.weekTotal .kwDec{font-size:9px;color:var(--muted);margin-top:2px}
+table{width:100%;border-collapse:collapse;font-size:10px}th,td{border-bottom:1px solid #4f545e;padding:6px 4px;text-align:left;vertical-align:top}th{color:var(--muted)}h3{font-size:13px;margin:4px 0 8px}.smallActions{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px}.debug{display:none;margin-top:8px;white-space:pre-wrap;font-size:10px;color:var(--muted);background:#24262b;border:1px dashed #555b65;border-radius:8px;padding:7px}
+@media(max-width:1520px){.main{grid-template-columns:minmax(0,900px)}.calendarColumn{width:100%;max-width:900px}.sideGrid{max-width:900px}.topbar{grid-template-columns:1fr}}
+@media(max-width:700px){.wrap{padding:7px}h1{font-size:15px}.monthTitle{font-size:14px}.summary{grid-template-columns:repeat(2,1fr)}.actions,.calNav{width:100%}.actions button,.actions .btn,.calNav button{flex:1}.day,.weekTotal{min-height:72px;padding:4px}.weekdays,.calendar{gap:3px}.weekday{font-size:9px;padding:4px}.calHead{align-items:flex-start;flex-direction:column}}
+@media print{body{background:white;color:black}.actions,.notice,.smallActions,.debug{display:none!important}.panel,.sum{background:white;color:black;border-color:#999;box-shadow:none}.day,.day.weekend,.day.work,.day.empty,.weekday,.weekTotal{background:white;color:black;border-color:#aaa}.main{grid-template-columns:1fr 360px}.wrap{max-width:none;padding:0}.sum .value,.duration,b,.weekTotal .kwSum,.weekTotal .kwNo{color:black!important}}
+
+/* v17: Zahlung bearbeiten */
+.paymentBox{min-height:0;padding:12px}.paymentBox h3{font-size:16px;margin:0 0 11px;color:var(--accent)}
+.paySection{background:#25272d;border:1px solid #4a4f59;border-radius:10px;padding:10px;margin-bottom:10px}.paySection h4{margin:0 0 9px;font-size:13px;color:var(--text)}
+.salaryInputRow{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end}.salaryInputRow button{height:34px;min-width:90px}
+.salaryResult{margin-top:9px;display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:8px}.resultMain,.resultMini{background:#303238;border:1px solid #515660;border-radius:9px;padding:8px}.resultMain .label,.resultMini span{display:block;color:var(--muted);font-size:10px;font-weight:800}.resultMain .value{font-size:18px;color:var(--good);font-weight:900;margin-top:3px}.resultMain .hint{color:var(--muted);font-size:9px;margin-top:3px}.resultMini b{display:block;color:var(--accent);font-size:13px;margin-top:4px}.paymentAddGrid{display:grid;grid-template-columns:.95fr 1.05fr .75fr .7fr .85fr auto auto;gap:7px;align-items:end}.paymentAddGrid button{height:34px;min-width:86px}.paymentSummaryLine{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin:10px 0}.paymentSummaryLine div{background:#303238;border:1px solid #515660;border-radius:9px;padding:8px}.paymentSummaryLine span{display:block;color:var(--muted);font-size:10px;font-weight:800}.paymentSummaryLine b{display:block;color:var(--accent);font-size:13px;margin-top:4px}.diffPositive{color:var(--good)!important}.diffNegative{color:var(--bad)!important}.diffZero{color:var(--text)!important}
+.paymentTableWrap{max-height:230px}.paymentTableWrap table{font-size:10.5px}.paymentTableWrap .emptyPay{padding:11px;color:var(--muted);font-size:11px;text-align:center}.paymentWide,.paymentGrid,.paymentTotals,.payStat{all:unset}
+@media(max-width:900px){.paymentSummaryLine{grid-template-columns:1fr 1fr}.paymentAddGrid{grid-template-columns:1fr 1fr}}@media(max-width:700px){.salaryInputRow,.salaryResult,.paymentAddGrid,.paymentSummaryLine{grid-template-columns:1fr}.paymentAddGrid button,.salaryInputRow button{width:100%}}
+
+/* v19: Live Zahlung preview + manuelle Tagesbearbeitung */
+.paymentPreview{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin:8px 0 2px}
+.paymentPreview div{background:#202228;border:1px solid #4d535e;border-radius:8px;padding:7px}
+.paymentPreview span{display:block;color:var(--muted);font-size:9.5px;font-weight:800}
+.paymentPreview b{display:block;color:var(--good);font-size:12.5px;margin-top:3px}
+.day{cursor:pointer;transition:filter .12s,border-color .12s}.day:not(.empty):hover{filter:brightness(1.12);border-color:var(--accent)}.manualTag{margin-top:4px;color:var(--warn);font-size:9px;font-weight:800}
+.modalOverlay{position:fixed;inset:0;background:rgba(0,0,0,.62);display:flex;align-items:center;justify-content:center;z-index:9999;padding:14px}
+.modalBox{width:min(440px,96vw);background:#2b2d31;border:1px solid #657083;border-radius:14px;box-shadow:0 18px 60px rgba(0,0,0,.45);padding:14px}
+.modalBox h3{margin:0 0 10px;font-size:16px;color:var(--accent)}
+.modalGrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.modalGrid .full{grid-column:1/-1}
+.modalActions{display:flex;gap:7px;justify-content:flex-end;flex-wrap:wrap;margin-top:12px}
+.modalHint{color:var(--muted);font-size:10.5px;margin-top:8px}.modalPreview{background:#25272d;border:1px solid #4d535e;border-radius:9px;padding:8px;margin-top:10px;color:var(--good);font-weight:900}
+@media(max-width:700px){.paymentPreview,.modalGrid{grid-template-columns:1fr}.modalActions button{flex:1}}
+
+/* v20: Übertrag aus Vormonaten */
+.carryoverBox{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.carryCard{background:#25272d;border:1px solid #4a4f59;border-radius:10px;padding:10px}
+.carryCard span{display:block;color:var(--muted);font-size:10px;font-weight:800;margin-bottom:4px}
+.carryCard b{display:block;font-size:14px;font-weight:900;color:var(--text)}
+.carryCard small{display:block;color:var(--muted);font-size:9px;margin-top:3px}
+@media(max-width:700px){.carryoverBox{grid-template-columns:1fr}}
+
+
+
+/* v21: Trinkgeld + Monats-Einnahmen */
+.calNav button{font-size:12.5px!important;background:#b86f16!important;border-color:#f0a23a!important;color:#fff7e6!important}
+.calNav button:hover{filter:brightness(1.14)}
+.weekTotal .kwTip{font-size:9.5px;color:#ffd166;font-weight:900;margin-top:4px}
+.tipLine{margin-top:4px;font-size:9.5px;font-weight:900;color:#ffd166}
+.monthIncomeBox{margin-top:9px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px}
+.monthIncomeBox .incomeCard{background:#25272d;border:1px solid #4a4f59;border-radius:9px;padding:8px}
+.monthIncomeBox span{display:block;color:var(--muted);font-size:10px;font-weight:800}
+.monthIncomeBox b{display:block;color:var(--accent);font-size:13px;margin-top:4px}
+.monthIncomeBox .tip b{color:#ffd166}
+.monthIncomeBox .total b{color:var(--good)}
+.backupTools{grid-column:1 / -1;display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:1px}
+.backupTool{background:#202229;border:1px solid #4a4f59;border-radius:9px;padding:8px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.backupTool span{font-size:10px;color:var(--muted);font-weight:800}
+.backupTool button,.backupTool label{font-size:11px;padding:7px 10px;border-radius:8px;white-space:nowrap;cursor:pointer}
+.backupTool input[type=file]{display:none}
+@media(max-width:700px){.monthIncomeBox{grid-template-columns:1fr}.backupTools{grid-template-columns:1fr}}
+
+
+
+/* v23: sauberer A4-Druckbericht mit größerer Schrift und deutschem Tagesdatum */
+.printReport{display:none}
+@media print{
+  @page{size:A4 portrait;margin:9mm}
+  html,body{width:210mm;min-height:297mm;background:#fff!important;color:#111!important;font-family:Arial,Helvetica,sans-serif!important;font-size:10.2px!important;line-height:1.22!important}
+  .wrap{padding:0!important;margin:0!important;max-width:none!important;width:100%!important}
+  .wrap > :not(.printReport){display:none!important}
+  .printReport{display:block!important;color:#111!important;background:#fff!important}
+  .printHeader{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #111;padding-bottom:5px;margin-bottom:6px}
+  .printHeader h1{font-size:20px!important;margin:0!important;color:#111!important}
+  .printHeader .printSub{font-size:11px;color:#444;margin-top:2px}
+  .printBadge{border:1px solid #111;border-radius:6px;padding:5px 8px;text-align:right;font-size:11px;font-weight:700;min-width:58mm}
+  .printGrid{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:6px}
+  .printCard{border:1px solid #333;border-radius:6px;padding:5px;background:#fff!important;break-inside:avoid}
+  .printCard h2{font-size:13px;margin:0 0 4px;color:#111!important;border-bottom:1px solid #aaa;padding-bottom:3px}
+  .printLine{display:flex;justify-content:space-between;gap:8px;border-bottom:1px dotted #ccc;padding:2px 0}
+  .printLine:last-child{border-bottom:0}
+  .printLine span{color:#444}.printLine b{color:#111!important}
+  .printTable{width:100%;border-collapse:collapse;font-size:9.4px;margin-top:3px}
+  .printTable th,.printTable td{border:1px solid #777;padding:2.5px 3px;text-align:left;vertical-align:top;color:#111!important}
+  .printTable th{background:#eee!important;font-weight:800;color:#111!important}
+  .printDayTable{font-size:9.3px}
+  .printPayments{font-size:9.2px}
+  .printFinal{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:6px}
+  .printFinal .printCard{border-width:2px}
+  .printValueBig{font-size:13.5px;font-weight:900;color:#111!important;text-align:right;margin-top:3px}
+  .printPositive{color:#078236!important}.printNegative{color:#b00020!important}.printZero{color:#111!important}
+  .printFooter{margin-top:4px;font-size:8.6px;color:#555;text-align:right}
+}
+
+/* v27 fixed: Insgesamt Bericht */
+.overallTabBox{margin-top:10px;background:#25272d;border:1px solid #4a4f59;border-radius:10px;padding:10px}
+.overallTabBox button{width:100%;font-size:12px;padding:9px 10px;background:#3d4652;border-color:#657083}
+.overallReportPage{margin-top:12px}
+body.overall-view{background:var(--bg)!important;color:var(--text)!important}
+body.overall-view .wrap{padding:10px!important}
+.overallReportHead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.overallReportHead h2{margin:0;font-size:18px;color:var(--accent)}
+.overallActions{display:flex;gap:6px;flex-wrap:wrap}
+.overallInfo{font-size:11px;color:var(--muted);margin-bottom:8px}
+.overallTableWrap{overflow:auto;border:1px solid var(--line);border-radius:10px;background:#25272d}
+.overallTable{width:100%;border-collapse:collapse;font-size:10.5px;min-width:1180px}
+.overallTable th,.overallTable td{border-bottom:1px solid #4f545e;border-right:1px solid #3f444d;padding:7px 6px;text-align:right;vertical-align:middle;white-space:nowrap}
+.overallTable th:first-child,.overallTable td:first-child{text-align:left;position:sticky;left:0;background:#25272d;z-index:1}
+.overallTable th{color:var(--muted);background:#2b2d31;font-weight:900;position:sticky;top:0;z-index:2}
+.overallTable th:first-child{z-index:3;background:#2b2d31}
+.overallTable tbody tr:hover td{background:#30343c}
+.overallTable .sumRow td{font-weight:900;background:#303238;color:var(--accent)}
+.overallTable .sumRow td:first-child{background:#303238}
+body.overall-view .header,
+body.overall-view #message,
+body.overall-view > .wrap > section.panel:not(#overallReportPage),
+body.overall-view .main,
+body.overall-view #printReport{display:none!important}
+body.overall-view #overallReportPage{display:block!important}
+@media print{
+  body.overall-report-print{background:white!important;color:#111!important}
+  body.overall-report-print .wrap > :not(.overallReportPage){display:none!important}
+  body.overall-report-print .overallReportPage{display:block!important;margin:0!important;color:#111!important;background:white!important}
+  body.overall-report-print .overallActions{display:none!important}
+  body.overall-report-print .overallReportHead{border-bottom:2px solid #111;padding-bottom:5px;margin-bottom:7px}
+  body.overall-report-print .overallReportHead h2{color:#111!important;font-size:17px!important}
+  body.overall-report-print .overallInfo{color:#333!important;font-size:9.8px!important}
+  body.overall-report-print .overallReportPage{
+    display:block!important;
+    margin:0!important;
+    padding:0!important;
+    width:281mm!important;
+    max-width:281mm!important;
+    color:#111!important;
+    background:white!important;
+    border:0!important;
+    box-shadow:none!important;
+  }
+  body.overall-report-print .overallTableWrap{
+    width:100%!important;
+    max-width:100%!important;
+    border:0!important;
+    overflow:visible!important;
+    background:white!important;
+  }
+  body.overall-report-print .overallTable{
+    min-width:0!important;
+    width:100%!important;
+    max-width:100%!important;
+    table-layout:fixed!important;
+    font-size:8.2px!important;
+  }
+  body.overall-report-print .overallTable th,
+  body.overall-report-print .overallTable td{border:1px solid #777!important;padding:3px 3px!important;color:#111!important;background:white!important;position:static!important;white-space:normal!important;word-break:normal!important;overflow-wrap:anywhere!important}
+  body.overall-report-print .overallTable th:nth-child(1), body.overall-report-print .overallTable td:nth-child(1){width:9%!important}
+  body.overall-report-print .overallTable th:nth-child(2), body.overall-report-print .overallTable td:nth-child(2){width:11%!important}
+  body.overall-report-print .overallTable th:nth-child(3), body.overall-report-print .overallTable td:nth-child(3){width:9%!important}
+  body.overall-report-print .overallTable th:nth-child(4), body.overall-report-print .overallTable td:nth-child(4){width:11%!important}
+  body.overall-report-print .overallTable th:nth-child(5), body.overall-report-print .overallTable td:nth-child(5){width:10%!important}
+  body.overall-report-print .overallTable th:nth-child(6), body.overall-report-print .overallTable td:nth-child(6){width:10%!important}
+  body.overall-report-print .overallTable th:nth-child(7), body.overall-report-print .overallTable td:nth-child(7){width:10%!important}
+  body.overall-report-print .overallTable th:nth-child(8), body.overall-report-print .overallTable td:nth-child(8){width:10%!important}
+  body.overall-report-print .overallTable th:nth-child(9), body.overall-report-print .overallTable td:nth-child(9){width:10%!important}
+  body.overall-report-print .overallTable th:nth-child(10), body.overall-report-print .overallTable td:nth-child(10){width:10%!important}
+  body.overall-report-print .overallTable th{background:#eee!important;font-weight:900!important}
+  body.overall-report-print .overallTable .sumRow td{background:#eee!important;color:#111!important;font-weight:900!important}
+  @page{size:A4 landscape;margin:8mm}
+}
+
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <h1>Arbeitszeit-Kalender</h1>
+    <div class="monthTitle" id="selectedMonthTitle">–</div>
+  </div>
+
+  <div id="message" class="notice hidden"></div>
+
+  <section class="panel">
+    <div class="topbar">
+      <div>
+        <label class="btn primary filebox">CSV-Datei hochladen<input id="csvFile" type="file" accept=".csv,text/csv,text/plain"></label>
+        <div class="fileName" id="fileName">Noch keine CSV geladen.</div>
+      </div>
+      <div class="actions">
+        <button onclick="window.print()" class="ghost" type="button">Drucken / PDF</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="main">
+    <div class="calendarColumn">
+  <section class="summary">
+    <div class="sum good"><div class="label">Gearbeitet</div><div class="value" id="sumHours">–</div></div>
+    <div class="sum"><div class="label">Arbeitstage</div><div class="value" id="sumDays">–</div></div>
+    <div class="sum"><div class="label">Brutto Soll</div><div class="value" id="sumGross">–</div></div>
+    <div class="sum warn"><div class="label">Ist bezahlt</div><div class="value" id="sumPaid">–</div></div>
+    <div class="sum bad"><div class="label">Differenz</div><div class="value" id="sumBalance">–</div></div>
+  </section>
+
+
+    <section class="panel">
+      <div class="calHead">
+        <div><h2 id="calendarTitle">Monatskalender</h2><div class="rangeInfo" id="rangeInfo">–</div></div>
+        <div class="calNav"><button id="prevMonthBtn" type="button">← Monat vorher</button><button id="nextMonthBtn" type="button">Monat danach →</button></div>
+      </div>
+      <div class="weekdays"><div class="weekday">Mo</div><div class="weekday">Di</div><div class="weekday">Mi</div><div class="weekday">Do</div><div class="weekday">Fr</div><div class="weekday">Sa</div><div class="weekday">So</div><div class="weekday kwHead">KW</div></div>
+      <div class="calendar" id="calendar"></div>
+    </section>
+
+    <section class="monthIncomeBox" aria-label="Monatliche Einnahmen">
+      <div class="incomeCard"><span>Summe Zahlung</span><b id="incomePaidTotal">–</b></div>
+      <div class="incomeCard tip"><span>Summe Trinkgeld</span><b id="incomeTipTotal">–</b></div>
+      <div class="incomeCard total"><span>Zahlung + Trinkgeld</span><b id="incomeGrandTotal">–</b></div>
+      <div class="backupTools" aria-label="Backup">
+        <div class="backupTool"><span>Alle gespeicherten Daten sichern</span><button id="backupDownloadBtn" class="ghost" type="button">Backup speichern</button></div>
+        <div class="backupTool"><span>Backup-Datei hochladen</span><label class="btn ghost" for="backupUploadFile">Backup hochladen</label><input id="backupUploadFile" type="file" accept=".json,application/json,text/plain"></div>
+      </div>
+    </section>
+    </div>
+    <aside class="sideGrid">
+      <section class="panel paymentBox">
+        <div class="carryoverBox">
+          <div class="carryCard"><span>Übertrag Std.-Differenz</span><b id="carryHourDiff">00:00 / 0,00 h</b><small>aus allen vorherigen Monaten</small></div>
+          <div class="carryCard"><span>Übertrag Lohn-Differenz</span><b id="carryMoneyDiff">0,00 €</b><small>aus allen vorherigen Monaten</small></div>
+        </div>
+        <h3>Gehalt rechnen – Zahlen</h3>
+
+        <div class="paySection salarySection">
+          <h4>Gehalt rechnen</h4>
+          <div class="salaryInputRow">
+            <div class="field"><label for="hourlyRateInput">Stundenlohn (€)</label><input id="hourlyRateInput" type="text" class="tinyInput" placeholder="z. B. 14,50"></div>
+            <button id="savePaymentSettingsBtn" class="primary" type="button">Speichern</button>
+          </div>
+          <div class="salaryResult">
+            <div class="resultMain">
+              <div class="label">Gesamtlohn brutto</div>
+              <div class="value" id="grossValue">–</div>
+              <div class="hint">Gearbeitete Stunden × Stundenlohn</div>
+            </div>
+            <div class="resultMini"><span>Gearbeitet</span><b id="openHoursTotal">–</b></div>
+            <div class="resultMini"><span>Stundenlohn</span><b id="rateValue">–</b></div>
+          </div>
+        </div>
+
+        <div class="paySection paymentSection">
+          <h4>Zahlung</h4>
+          <div class="paymentAddGrid">
+            <div class="field"><label for="paymentDateInput">Datum</label><input id="paymentDateInput" type="date" class="tinyInput"></div>
+            <div class="field"><label for="paymentPersonInput">Bezahlt von</label><input id="paymentPersonInput" type="text" class="tinyInput" placeholder="Name"></div>
+            <div class="field"><label for="paymentHoursInput">Stunden</label><input id="paymentHoursInput" type="text" class="tinyInput" placeholder="10:00"></div>
+            <div class="field"><label for="paymentRateInput">€/Std.</label><input id="paymentRateInput" type="text" class="tinyInput" placeholder="14,50"></div>
+            <div class="field"><label for="paymentTaxInput">Pauschale Steuer</label><input id="paymentTaxInput" type="text" class="tinyInput" placeholder="0,00"></div>
+            <button id="addPaymentBtn" class="primary" type="button">Eintragen</button>
+            <button id="cancelEditPaymentBtn" class="ghost hidden" type="button">Abbrechen</button>
+          </div>
+
+          <div class="paymentPreview">
+            <div><span>Brutto vor Eintragen</span><b id="paymentPreviewGross">0,00 €</b></div>
+            <div><span>Pauschale Steuer</span><b id="paymentPreviewTax">0,00 €</b></div>
+            <div><span>Netto vor Eintragen</span><b id="paymentPreviewNet">0,00 €</b></div>
+          </div>
+
+          <div class="paymentSummaryLine">
+            <div><span>Soll nach Steuer</span><b id="netValue">–</b></div>
+            <div><span>Summe Zahlungen</span><b id="paidValue">–</b></div>
+            <div><span>Bezahlte Stunden</span><b id="paidHoursValue">–</b></div>
+            <div><span>Std.-Differenz</span><b id="hourDiffValue">–</b></div>
+            <div><span>Steuer gesamt</span><b id="taxTotalValue">–</b></div>
+            <div class="diffBox"><span>Differenz €</span><b id="moneyDiff">–</b></div>
+          </div>
+
+          <div class="paymentTableWrap" id="paymentList"></div>
+        </div>
+
+        <div class="overallTabBox">
+          <button id="openOverallReportBtn" type="button">Insgesamt Bericht</button>
+        </div>
+      </section>
+    </aside>
+  </div>
+
+  <section id="overallReportPage" class="panel overallReportPage hidden" aria-label="Insgesamt Bericht">
+    <div class="overallReportHead">
+      <div>
+        <h2>Insgesamt Bericht</h2>
+        <div class="overallInfo" id="overallReportInfo">Alle gespeicherten Monate ab dem ersten eingetragenen Monat.</div>
+      </div>
+      <div class="overallActions">
+        <button id="overallBackBtn" class="ghost" type="button">Zurück</button>
+        <button id="overallPdfBtn" class="primary" type="button">PDF erstellen</button>
+      </div>
+    </div>
+    <div class="overallTableWrap" id="overallReportTableWrap"></div>
+  </section>
+
+  <div id="dayEditModal" class="modalOverlay hidden">
+    <div class="modalBox">
+      <h3 id="dayEditTitle">Arbeitszeit bearbeiten</h3>
+      <div class="modalGrid">
+        <div class="field"><label for="manualStartInput">Beginn</label><input id="manualStartInput" type="text" placeholder="z. B. 08:00"></div>
+        <div class="field"><label for="manualEndInput">Ende</label><input id="manualEndInput" type="text" placeholder="z. B. 14:30"></div>
+        <div class="field"><label for="manualBreakInput">Pause</label><input id="manualBreakInput" type="text" placeholder="z. B. 00:30"></div>
+        <div class="field"><label for="manualDurationInput">Dauer</label><input id="manualDurationInput" type="text" readonly></div>
+        <div class="field full"><label for="manualTipInput">Trinkgeld (€)</label><input id="manualTipInput" type="text" placeholder="z. B. 5,00"></div>
+      </div>
+      <div class="modalPreview" id="manualPreview">Dauer: 00:00</div>
+      <div class="modalHint">Klick auf einen Kalendertag öffnet diese manuelle Bearbeitung. Die gespeicherten Werte bleiben in der lokalen Databank.</div>
+      <div class="modalActions">
+        <button id="deleteManualDayBtn" class="danger" type="button">Zeit löschen</button>
+        <button id="cancelManualDayBtn" class="ghost" type="button">Abbrechen</button>
+        <button id="saveManualDayBtn" class="primary" type="button">Speichern</button>
+      </div>
+    </div>
+  </div>
+
+
+  <section id="printReport" class="printReport" aria-label="PDF Druckbericht">
+    <div class="printHeader">
+      <div>
+        <h1 id="printMonthTitle">Arbeitszeitbericht</h1>
+        <div class="printSub">Monatsübersicht für Druck / PDF</div>
+      </div>
+      <div class="printBadge">
+        <div>Monat / Jahr</div>
+        <div id="printMonthBadge">–</div>
+      </div>
+    </div>
+
+    <div class="printGrid">
+      <div class="printCard">
+        <h2>Übertrag aus Vormonaten</h2>
+        <div class="printLine"><span>Übertrag Std.-Differenz</span><b id="printCarryStd">–</b></div>
+        <div class="printLine"><span>Übertrag Lohn-Differenz</span><b id="printCarryLohn">–</b></div>
+      </div>
+      <div class="printCard">
+        <h2>Gehalt rechnen</h2>
+        <div class="printLine"><span>Gearbeitet Std.</span><b id="printWorkedStd">–</b></div>
+        <div class="printLine"><span>Stundenlohn</span><b id="printHourlyRate">–</b></div>
+        <div class="printLine"><span>Gesamtlohn brutto</span><b id="printGrossSalary">–</b></div>
+      </div>
+    </div>
+
+    <div class="printCard">
+      <h2>Tagesliste</h2>
+      <div id="printDayList">–</div>
+    </div>
+
+    <div class="printCard" style="margin-top:6px">
+      <h2>Informationen Zahlung</h2>
+      <div id="printPaymentInfo">–</div>
+      <div class="printLine" style="margin-top:4px;border-top:1px solid #777;padding-top:4px"><span>Summe Zahlung ohne Trinkgeld</span><b id="printSumPayment">–</b></div>
+    </div>
+
+    <div class="printFinal">
+      <div class="printCard">
+        <h2>Übertrag Std. nächste Monat</h2>
+        <div class="printValueBig" id="printNextStd">–</div>
+      </div>
+      <div class="printCard">
+        <h2>Übertrag Lohn nächste Monat</h2>
+        <div class="printValueBig" id="printNextLohn">–</div>
+      </div>
+    </div>
+    <div class="printFooter" id="printGeneratedAt">–</div>
+  </section>
+
+  <div class="debug" id="debug"></div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function(){
+const STORAGE_KEY='planningifyArbeitszeitDB_v10_layout';
+const OLD_KEYS=['planningifyArbeitszeitDB_v7_lokal_clean','planningifyArbeitszeitDB_v6_clean','planningifyArbeitszeitDB_v5_balance','planningifyArbeitszeitDB_v4'];
+
+/* v30: Online-Sync mit Supabase.
+   WICHTIG: Grafik/HTML-Struktur bleibt unverändert. Nur diese drei Werte einsetzen.
+   1) SUPABASE_URL: Project URL aus Supabase
+   2) SUPABASE_ANON_KEY: anon public key aus Supabase
+   3) SUPABASE_STORE_ID: eigener eindeutiger Name für diese Arbeitszeit-Datei
+*/
+const SUPABASE_URL='https://ysyamwabsqbydywhufyn.supabase.co';
+const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlzeWFtd2Fic3FieWR5d2h1ZnluIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxMzIwMDAsImV4cCI6MjA5NTcwODAwMH0.V1kCVT0ChK9FZKfRyAOiVKcE6L1PJyf8t7YkX6LInGs';
+const SUPABASE_STORE_ID='dominos_arbeitszeit_main';
+const SUPABASE_TABLE='planningify_store';
+let sbClient=null;
+let onlineSyncActive=false;
+let syncTimer=null;
+let suppressOnlineUpload=false;
+let lastOnlineSyncAt=0;
+const START_Y=2023, START_M=6, END_Y=2050, END_M=12;
+const MONTHS=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+let currentKey=null;
+const $=id=>document.getElementById(id);
+function pad(n){return String(n).padStart(2,'0')}
+function makeKey(y,m){return y+'-'+pad(m)}
+function parseKey(k){const [y,m]=k.split('-').map(Number);return{y,m}}
+function monthLabel(k){const p=parseKey(k);return MONTHS[p.m-1]+' '+p.y}
+function nextKey(k){let {y,m}=parseKey(k);m++;if(m>12){m=1;y++}return makeKey(y,m)}
+function prevKey(k){let {y,m}=parseKey(k);m--;if(m<1){m=12;y--}return makeKey(y,m)}
+function inRange(k){const {y,m}=parseKey(k);return !(y<START_Y||y>END_Y||(y===START_Y&&m<START_M)||(y===END_Y&&m>END_M))}
+function clampKey(k){if(inRange(k))return k;const {y,m}=parseKey(k);if(y<START_Y||(y===START_Y&&m<START_M))return makeKey(START_Y,START_M);return makeKey(END_Y,END_M)}
+function localMonthKey(){const now=new Date();return clampKey(makeKey(now.getFullYear(),now.getMonth()+1))}
+function allKeys(){let a=[];for(let y=START_Y;y<=END_Y;y++)for(let m=1;m<=12;m++){const k=makeKey(y,m);if(inRange(k))a.push(k)}return a}
+function keyDate(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())}
+function pdate(s){if(!s)return null;const m=String(s).trim().match(/^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})$/);if(!m)return null;const d=new Date(+m[1],+m[2]-1,+m[3]);return isNaN(d)?null:d}
+function gdate(d){return d.toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit',year:'numeric'})}
+function gdateLongDE(d){if(!d)return '';const days=['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];const dd=String(d.getDate()).padStart(2,'0');const mm=String(d.getMonth()+1).padStart(2,'0');return days[d.getDay()]+' '+dd+'.'+mm+'.'+d.getFullYear()}
+function normalizeDateDE(value){
+  if(!value)return null;
+  if(value instanceof Date && !isNaN(value))return value;
+  if(typeof value==='object' && value.date instanceof Date && !isNaN(value.date))return value.date;
+  const parsed=pdate(String(value));
+  return parsed && !isNaN(parsed) ? parsed : null;
+}
+function recordDateDE(r){
+  return normalizeDateDE(r && (r.date || r.key));
+}
+function week(d){let x=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));let day=x.getUTCDay()||7;x.setUTCDate(x.getUTCDate()+4-day);let ys=new Date(Date.UTC(x.getUTCFullYear(),0,1));return Math.ceil((((x-ys)/86400000)+1)/7)}
+function tmin(v){if(v===undefined||v===null)return 0;let s=String(v).trim();if(!s)return 0;s=s.replace(',', '.');let neg=false;if(s.startsWith('-')){neg=true;s=s.slice(1)}if(/^\d{1,4}:\d{1,2}$/.test(s)){let [h,m]=s.split(':').map(Number);let r=h*60+m;return neg?-r:r}if(/^\d+(\.\d+)?$/.test(s)){let r=Math.round(parseFloat(s)*60);return neg?-r:r}return 0}
+function mt(min){min=Math.round(Number(min)||0);let sign=min<0?'-':'';min=Math.abs(min);return sign+String(Math.floor(min/60)).padStart(2,'0')+':'+String(min%60).padStart(2,'0')}
+function dh(min){return ((Number(min)||0)/60).toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2})+' h'}
+function parseMoney(v){if(v===undefined||v===null)return 0;let s=String(v).trim();if(!s)return 0;s=s.replace(/\s/g,'').replace(/€/g,'');if(s.includes(',')&&s.includes('.'))s=s.replace(/\./g,'').replace(',','.');else s=s.replace(',','.');let n=parseFloat(s);return isNaN(n)?0:n}
+function fm(n){return (Number(n)||0).toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2})+' €'}
+function moneyInput(n){return (Number(n)||0).toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function escapeHtml(s){return String(s).replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+function msg(t,type='notice'){const m=$('message');m.className='notice '+(type==='ok'?'ok':type==='warn'?'warn':type==='error'?'error':'');m.innerHTML=t;m.classList.remove('hidden')}
+function hideMsg(){$('message').classList.add('hidden')}
+function debug(t){const d=$('debug');d.style.display='block';d.textContent=t}
+function splitCSVLine(line,sep){let out=[],cur='',q=false;for(let i=0;i<line.length;i++){let c=line[i];if(c==='"'){if(q&&line[i+1]==='"'){cur+='"';i++}else q=!q}else if(c===sep&&!q){out.push(cur);cur=''}else cur+=c}out.push(cur);return out.map(x=>x.trim().replace(/^"|"$/g,''))}
+function parseCSV(text){if(!text||!text.trim())throw new Error('CSV-Datei ist leer.');text=text.replace(/^\uFEFF/,'').replace(/\r\n/g,'\n').replace(/\r/g,'\n');const lines=text.split('\n').filter(l=>l.trim().length);if(!lines.length)throw new Error('CSV enthält keine Zeilen.');const first=lines[0];const sep=(first.match(/;/g)||[]).length>=(first.match(/,/g)||[]).length?';':',';return lines.map(l=>splitCSVLine(l,sep))}
+function rowsToRecords(rows){const headers=rows[0].map(h=>String(h).trim());const map={};headers.forEach((h,i)=>map[h.toLowerCase()]=i);if(map.day===undefined&&map.datum===undefined&&map.date===undefined)throw new Error('Spalte „day“ / „Datum“ wurde nicht gefunden.');const di=map.day!==undefined?map.day:(map.datum!==undefined?map.datum:map.date);const recs=[];for(let r=1;r<rows.length;r++){const row=rows[r];const d=pdate(row[di]);if(!d)continue;let total=0,intervals=[];for(let i=1;i<=8;i++){const ai=map['arrival'+i],depi=map['departure'+i],bi=map['breaks'+i],dui=map['duration'+i];const a=ai!==undefined?(row[ai]||''):'';const dep=depi!==undefined?(row[depi]||''):'';const br=bi!==undefined?(row[bi]||''):'';const dur=dui!==undefined?(row[dui]||''):'';if(!(a||dep||br||dur))continue;let mins=tmin(dur);if(!mins&&a&&dep)mins=tmin(dep)-tmin(a)-tmin(br);intervals.push({arrival:a,departure:dep,breaks:br,duration:mins});total+=mins}if(!total){const pi=map['paid_hours_coeff'];if(pi!==undefined)total=tmin(row[pi])}const tipIdx=map.trinkgeld!==undefined?map.trinkgeld:(map.tip!==undefined?map.tip:map.tips);const tip=tipIdx!==undefined?parseMoney(row[tipIdx]):0;recs.push({date:d,key:keyDate(d),total,intervals,comments:map.comments!==undefined?(row[map.comments]||''):'',tip})}recs.sort((a,b)=>a.date-b.date);return recs}
+function migrateDB(){if(localStorage.getItem(STORAGE_KEY))return;for(const k of OLD_KEYS){const v=localStorage.getItem(k);if(v){localStorage.setItem(STORAGE_KEY,v);return}}}
+function readDB(){try{migrateDB();return JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}')}catch(e){return {}}}
+function writeDB(db){localStorage.setItem(STORAGE_KEY,JSON.stringify(db));queueOnlineUpload(db)}
+function isSupabaseConfigured(){return /^https:\/\//.test(SUPABASE_URL||'') && String(SUPABASE_ANON_KEY||'').length>20 && !!(window.supabase&&window.supabase.createClient)}
+function getSupabaseClient(){if(!isSupabaseConfigured())return null;if(!sbClient)sbClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);return sbClient}
+function safeTime(v){const t=Date.parse(v||'');return isNaN(t)?0:t}
+function mergeMonthData(localMonth,remoteMonth,k){
+  if(!localMonth)return remoteMonth;
+  if(!remoteMonth)return localMonth;
+  const lt=safeTime(localMonth.savedAt), rt=safeTime(remoteMonth.savedAt);
+  return rt>lt?remoteMonth:localMonth;
+}
+function mergeDB(localDB,remoteDB){
+  const out={...(localDB||{})};
+  Object.keys(remoteDB||{}).forEach(k=>{
+    if(/^\d{4}-\d{2}$/.test(k)) out[k]=mergeMonthData(out[k],remoteDB[k],k);
+  });
+  return out;
+}
+function queueOnlineUpload(db){
+  if(suppressOnlineUpload||!onlineSyncActive)return;
+  clearTimeout(syncTimer);
+  syncTimer=setTimeout(()=>uploadOnlineDB(db||readDB()),900);
+}
+async function uploadOnlineDB(db){
+  const client=getSupabaseClient();
+  if(!client)return;
+  try{
+    const payload={id:SUPABASE_STORE_ID,data:db||readDB(),updated_at:new Date().toISOString()};
+    const {error}=await client.from(SUPABASE_TABLE).upsert(payload,{onConflict:'id'});
+    if(error)throw error;
+    lastOnlineSyncAt=Date.now();
+  }catch(e){
+    console.error('Supabase Upload Fehler:',e);
+    msg('Online-Sync Upload fehlgeschlagen. Lokal wurde trotzdem gespeichert.','warn');
+  }
+}
+async function downloadOnlineDB(showStatus=false){
+  const client=getSupabaseClient();
+  if(!client)return;
+  try{
+    const {data,error}=await client.from(SUPABASE_TABLE).select('data,updated_at').eq('id',SUPABASE_STORE_ID).maybeSingle();
+    if(error)throw error;
+    const local=readDB();
+    if(data&&data.data){
+      const merged=mergeDB(local,data.data||{});
+      suppressOnlineUpload=true;
+      localStorage.setItem(STORAGE_KEY,JSON.stringify(merged));
+      suppressOnlineUpload=false;
+      await uploadOnlineDB(merged);
+      if(currentKey)renderMonth(currentKey);
+      if(showStatus)msg('Online-Daten wurden geladen und synchronisiert.','ok');
+    }else{
+      await uploadOnlineDB(local);
+      if(showStatus)msg('Online-Datensatz wurde neu erstellt.','ok');
+    }
+    lastOnlineSyncAt=Date.now();
+  }catch(e){
+    console.error('Supabase Download Fehler:',e);
+    if(showStatus)msg('Online-Sync konnte nicht geladen werden: '+escapeHtml(e.message||String(e)),'error');
+  }
+}
+async function initOnlineSync(){
+  if(!isSupabaseConfigured())return;
+  onlineSyncActive=true;
+  await downloadOnlineDB(true);
+  setInterval(()=>downloadOnlineDB(false),30000);
+}
+function blankMonth(k){return{monthKey:k,label:monthLabel(k),savedAt:null,totalMinutes:0,paidMinutes:0,hourlyRate:'',taxAmount:'',payments:[],records:[]}}
+function getMonth(k){const db=readDB();return db[k]||blankMonth(k)}
+function saveMonthData(k,data){const db=readDB();db[k]={...blankMonth(k),...db[k],...data,monthKey:k,label:monthLabel(k),savedAt:new Date().toISOString()};db[k].totalMinutes=(db[k].records||[]).reduce((s,r)=>s+(Number(r.total)||0),0);writeDB(db)}
+function toPlain(records){return records.map(r=>({date:keyDate(r.date),total:r.total,intervals:r.intervals||[],comments:r.comments||'',tip:parseMoney(r.tip)}))}
+function fromPlain(records){return(records||[]).map(r=>({date:pdate(r.date),key:r.date,total:Number(r.total)||0,intervals:r.intervals||[],comments:r.comments||'',tip:parseMoney(r.tip)})).filter(r=>r.date).sort((a,b)=>a.date-b.date)}
+let editingPaymentId=null;
+let editingDayKey=null;
+
+function calcIntervalMinutes(start,end,brk){let a=tmin(start),b=tmin(end),p=tmin(brk);if(!a&&!b)return 0;if(b<a)b+=24*60;return Math.max(0,b-a-p)}
+function saveCurrentMonthRecords(records){const old=getMonth(currentKey);saveMonthData(currentKey,{records:records,paidMinutes:Number(old.paidMinutes)||0,hourlyRate:old.hourlyRate||'',taxAmount:old.taxAmount||'',payments:old.payments||[]})}
+function calcPayments(item){const total=Number(item.totalMinutes)||0;const rate=parseMoney(item.hourlyRate);const gross=(total/60)*rate;const payments=(item.payments||[]).map(p=>{const prate=parseMoney(p.rate);const tax=parseMoney(p.tax!==undefined?p.tax:p.taxAmount);const pgross=(Number(p.hours)||0)/60*prate;const net=Math.max(0,pgross-tax);return{id:p.id||String(Date.now()+Math.random()),date:p.date||'',person:p.person||'',hours:Number(p.hours)||0,rate:prate,tax,pgross,net}});const paidMoney=payments.reduce((s,p)=>s+p.net,0);const paidGross=payments.reduce((s,p)=>s+p.pgross,0);const taxTotal=payments.reduce((s,p)=>s+p.tax,0);const paidHours=payments.reduce((s,p)=>s+p.hours,0);const openHours=total-paidHours;const net=Math.max(0,gross-taxTotal);const diff=paidMoney-net;return{total,rate,gross,net,payments,paidMoney,paidGross,taxTotal,paidHours,openHours,diff}}
+function calcTips(records){return (records||[]).reduce((s,r)=>s+parseMoney(r.tip),0)}
+function monthIndex(k){const p=parseKey(k);return p.y*12+p.m}
+function calcCarryover(beforeKey){
+  const db=readDB();
+  let hourDiff=0, moneyDiff=0;
+  Object.keys(db).forEach(k=>{
+    if(!/^\d{4}-\d{2}$/.test(k) || !inRange(k) || monthIndex(k)>=monthIndex(beforeKey))return;
+    const p=calcPayments({...blankMonth(k),...db[k]});
+    hourDiff += (p.total-p.paidHours); // positiv = noch offene Stunden, negativ = zu viel bezahlt
+    moneyDiff += p.diff;              // positiv = zu viel bezahlt, negativ = zu wenig bezahlt
+  });
+  return {hourDiff,moneyDiff};
+}
+function setDiff(el,value){if(!el)return;el.classList.remove('diffPositive','diffNegative','diffZero');if(Math.abs(Number(value)||0)<0.005)el.classList.add('diffZero');else if(Number(value)>0)el.classList.add('diffPositive');else el.classList.add('diffNegative')}
+function setCarryHourDiff(el,value){
+  if(!el)return;
+  el.textContent=(value>0?'+ ':'')+mt(value)+' / '+dh(value);
+  el.classList.remove('diffPositive','diffNegative','diffZero');
+  if(Math.abs(Number(value)||0)<1)el.classList.add('diffZero');
+  else if(Number(value)>0)el.classList.add('diffNegative');
+  else el.classList.add('diffPositive');
+}
+function openMonth(k,silent=true){if(!inRange(k))return;currentKey=k;renderMonth(k);if(!silent)msg('Monat geöffnet: <b>'+monthLabel(k)+'</b>.','ok');else hideMsg()}
+
+function signedMoney(n){return (Number(n)>=0?'+ ':'- ')+fm(Math.abs(Number(n)||0))}
+function signedHours(n){return (Number(n)>=0?'+ ':'- ')+mt(Math.abs(Number(n)||0))+' / '+dh(Number(n)||0)}
+function setPrintDiff(id,value,type='money'){
+  const el=$(id); if(!el)return;
+  el.classList.remove('printPositive','printNegative','printZero');
+  const v=Number(value)||0;
+  if(Math.abs(v)<(type==='money'?0.005:1)) el.classList.add('printZero');
+  else if(v>0) el.classList.add('printPositive');
+  else el.classList.add('printNegative');
+}
+function renderPrintReport(k,item,records,pay,carry){
+  if(!$('printReport'))return;
+  const month=monthLabel(k);
+  const currentHourDiff=(Number(pay.total)||0)-(Number(pay.paidHours)||0);
+  const nextStd=(Number(carry.hourDiff)||0)+currentHourDiff;
+  const nextLohn=(Number(carry.moneyDiff)||0)+(Number(pay.diff)||0);
+
+  $('printMonthTitle').textContent='Arbeitszeitbericht – '+month;
+  $('printMonthBadge').textContent=month;
+  $('printCarryStd').textContent=signedHours(carry.hourDiff);
+  $('printCarryLohn').textContent=signedMoney(carry.moneyDiff);
+  $('printWorkedStd').textContent=mt(pay.total)+' / '+dh(pay.total);
+  $('printHourlyRate').textContent=fm(pay.rate);
+  $('printGrossSalary').textContent=fm(pay.gross);
+  $('printSumPayment').textContent=fm(pay.paidMoney);
+  $('printNextStd').textContent=signedHours(nextStd);
+  $('printNextLohn').textContent=signedMoney(nextLohn);
+  setPrintDiff('printCarryLohn',carry.moneyDiff,'money');
+  setPrintDiff('printNextLohn',nextLohn,'money');
+  setPrintDiff('printNextStd',-nextStd,'hours');
+
+  const dayRows=(records||[]).filter(r=>Number(r.total)>0).map(r=>{
+    const d=recordDateDE(r);
+    const intervals=(r.intervals||[]).filter(x=>x.duration>0||x.arrival||x.departure);
+    const begin=intervals.map(x=>escapeHtml(x.arrival||'–')).join('<br>')||'–';
+    const end=intervals.map(x=>escapeHtml(x.departure||'–')).join('<br>')||'–';
+    const pause=intervals.map(x=>escapeHtml(x.breaks||'–')).join('<br>')||'–';
+    return '<tr><td>'+escapeHtml(d?gdateLongDE(d):'')+'</td><td>'+begin+'</td><td>'+end+'</td><td>'+pause+'</td><td><b>'+mt(r.total)+'</b></td></tr>';
+  }).join('');
+  $('printDayList').innerHTML=dayRows?'<table class="printTable printDayTable"><thead><tr><th>Datum</th><th>Beginn</th><th>Ende</th><th>Pause</th><th>Gearbeitet</th></tr></thead><tbody>'+dayRows+'</tbody></table>':'Keine Arbeitszeiten eingetragen.';
+
+  const payRows=(pay.payments||[]).map(p=>'<tr><td>'+escapeHtml(p.date||'–')+'</td><td>'+escapeHtml(p.person||'–')+'</td><td>'+mt(p.hours)+'</td><td>'+fm(p.rate)+'</td><td>'+fm(p.pgross)+'</td><td>'+fm(p.tax)+'</td><td><b>'+fm(p.net)+'</b></td></tr>').join('');
+  $('printPaymentInfo').innerHTML=payRows?'<table class="printTable printPayments"><thead><tr><th>Datum</th><th>Von</th><th>Std.</th><th>€/Std.</th><th>Brutto</th><th>Steuer</th><th>Netto</th></tr></thead><tbody>'+payRows+'</tbody></table>':'Noch keine Zahlungen eingetragen.';
+  $('printGeneratedAt').textContent='Erstellt am '+new Date().toLocaleString('de-DE');
+}
+
+function renderMonth(k){
+  const item=getMonth(k),records=fromPlain(item.records),pay=calcPayments(item),carry=calcCarryover(k);
+  $('selectedMonthTitle').textContent=monthLabel(k);
+  if($('carryHourDiff')) setCarryHourDiff($('carryHourDiff'),carry.hourDiff);
+  if($('carryMoneyDiff')) { $('carryMoneyDiff').textContent=(carry.moneyDiff>=0?'+':'')+fm(carry.moneyDiff); setDiff($('carryMoneyDiff'),carry.moneyDiff); }
+  $('fileName').textContent=records.length?'CSV gespeichert: '+records.length+' Arbeitstag(e)':'Noch keine CSV für diesen Monat geladen.';
+  $('hourlyRateInput').value=item.hourlyRate||'';
+  $('paymentRateInput').value=$('paymentRateInput').value||item.hourlyRate||'';
+
+  $('sumHours').textContent=mt(pay.total)+' ('+dh(pay.total)+')';
+  const days=records.filter(r=>r.total>0).length;
+  $('sumDays').textContent=String(days);
+  $('sumGross').textContent=fm(pay.gross);
+  $('sumPaid').textContent=fm(pay.paidMoney);
+  $('sumBalance').textContent=(pay.diff>=0?'+':'')+fm(pay.diff);
+  setDiff($('sumBalance'),pay.diff);
+
+  $('grossValue').textContent=fm(pay.gross);
+  $('rateValue').textContent=fm(pay.rate);
+  $('netValue').textContent=fm(pay.net);
+  $('paidValue').textContent=fm(pay.paidMoney);
+  $('taxTotalValue').textContent=fm(pay.taxTotal);
+  $('moneyDiff').textContent=(pay.diff>=0?'+':'')+fm(pay.diff);
+  setDiff($('moneyDiff'),pay.diff);
+  const tipTotal=calcTips(records);
+  if($('incomePaidTotal')) $('incomePaidTotal').textContent=fm(pay.paidMoney);
+  if($('incomeTipTotal')) $('incomeTipTotal').textContent=fm(tipTotal);
+  if($('incomeGrandTotal')) $('incomeGrandTotal').textContent=fm(pay.paidMoney+tipTotal);
+
+  $('openHoursTotal').textContent=mt(pay.total)+' / '+dh(pay.total);
+  $('paidHoursValue').textContent=mt(pay.paidHours)+' / '+dh(pay.paidHours);
+  const hourDiff=pay.total-pay.paidHours;
+  $('hourDiffValue').textContent=(hourDiff>0?'- ':'+ ')+mt(Math.abs(hourDiff))+' / '+dh(hourDiff);
+  setDiff($('hourDiffValue'),-hourDiff);
+
+  updatePaymentPreview();
+  renderPaymentList(item);
+  renderCalendar(k,records);
+  renderPrintReport(k,item,records,pay,carry);
+}
+function weekCell(date,min,tip){let el=document.createElement('div');el.className='weekTotal';el.innerHTML='<div class="kwNo">KW '+week(date)+'</div><div class="kwSum">'+mt(min)+'</div><div class="kwDec">'+dh(min)+'</div><div class="kwTip">TG: '+fm(tip||0)+'</div>';return el}
+function renderCalendar(k,records){
+  const {y,m}=parseKey(k),mm=m-1;
+  const by=new Map(records.map(r=>[r.key,r]));
+  $('calendarTitle').textContent=monthLabel(k);
+  const fd=new Date(y,mm,1),ld=new Date(y,mm+1,0);
+  $('rangeInfo').textContent=fd.toLocaleDateString('de-DE')+' – '+ld.toLocaleDateString('de-DE');
+  $('prevMonthBtn').disabled=!inRange(prevKey(k));
+  $('nextMonthBtn').disabled=!inRange(nextKey(k));
+  const cal=$('calendar');cal.innerHTML='';
+  const off=(fd.getDay()+6)%7;
+  let weekSum=0, weekTip=0;
+  let weekRef=new Date(y,mm,1);
+  for(let i=0;i<off;i++){let e=document.createElement('div');e.className='day empty';cal.appendChild(e)}
+  for(let d=1;d<=ld.getDate();d++){
+    const date=new Date(y,mm,d),r=by.get(keyDate(date));
+    if(d===1) weekRef=date;
+    let div=document.createElement('div');
+    div.className='day'+((date.getDay()===0||date.getDay()===6)?' weekend':'')+(r&&r.total>0?' work':'');
+    div.dataset.day=keyDate(date);
+    div.title='Klicken zum Bearbeiten';
+    div.addEventListener('click',()=>openDayEditor(keyDate(date)));
+    div.innerHTML='<div class="dateLine"><span>'+d+'</span></div><div class="muted">'+date.toLocaleDateString('de-DE',{weekday:'long'})+'</div>';
+    if(r&&r.total>0){
+      weekSum+=Number(r.total)||0;
+      weekTip+=parseMoney(r.tip);
+      r.intervals.filter(x=>x.duration>0||x.arrival||x.departure).forEach(x=>{
+        let l=document.createElement('div');l.className='time';
+        l.innerHTML='<b>'+escapeHtml(x.arrival||'–')+' – '+escapeHtml(x.departure||'–')+'</b>'+(x.breaks?'<br>Pause: '+escapeHtml(x.breaks):'')+(x.duration?'<br>Dauer: '+mt(x.duration):'');
+        div.appendChild(l)
+      });
+      let du=document.createElement('div');du.className='duration';du.textContent='Summe: '+mt(r.total);div.appendChild(du);
+      if(parseMoney(r.tip)>0){let tg=document.createElement('div');tg.className='tipLine';tg.textContent='Trinkgeld: '+fm(parseMoney(r.tip));div.appendChild(tg)}
+      if((r.comments||'').includes('manuell')){let tag=document.createElement('div');tag.className='manualTag';tag.textContent='manuell';div.appendChild(tag)}
+    }else{
+      let f=document.createElement('div');f.className='muted';f.textContent='Keine Arbeitszeit';div.appendChild(f)
+    }
+    cal.appendChild(div);
+    const isSunday=date.getDay()===0;
+    const isLast=d===ld.getDate();
+    if(isSunday||isLast){
+      const dayIndex=(date.getDay()+6)%7;
+      for(let fill=dayIndex+1;fill<7;fill++){let e=document.createElement('div');e.className='day empty';cal.appendChild(e)}
+      cal.appendChild(weekCell(weekRef,weekSum,weekTip));
+      weekSum=0;weekTip=0;
+      if(!isLast) weekRef=new Date(y,mm,d+1);
+    }
+  }
+}
+
+function updatePaymentPreview(){
+  const old=getMonth(currentKey);
+  const hours=tmin($('paymentHoursInput').value);
+  const rate=parseMoney(($('paymentRateInput').value||old.hourlyRate||'').trim());
+  const tax=parseMoney(($('paymentTaxInput').value||'0').trim());
+  const gross=(hours/60)*rate;
+  const net=Math.max(0,gross-tax);
+  if($('paymentPreviewGross')) $('paymentPreviewGross').textContent=fm(gross);
+  if($('paymentPreviewTax')) $('paymentPreviewTax').textContent=fm(tax);
+  if($('paymentPreviewNet')) $('paymentPreviewNet').textContent=fm(net);
+}
+function updateManualPreview(){
+  const mins=calcIntervalMinutes($('manualStartInput').value,$('manualEndInput').value,$('manualBreakInput').value);
+  $('manualDurationInput').value=mt(mins);
+  $('manualPreview').textContent='Dauer: '+mt(mins)+' / '+dh(mins);
+  return mins;
+}
+function openDayEditor(dayKey){
+  editingDayKey=dayKey;
+  const item=getMonth(currentKey);
+  const rec=(item.records||[]).find(r=>r.date===dayKey);
+  const interval=rec&&rec.intervals&&rec.intervals[0]?rec.intervals[0]:{};
+  const d=pdate(dayKey);
+  $('dayEditTitle').textContent='Arbeitszeit bearbeiten – '+(d?gdate(d):dayKey);
+  $('manualStartInput').value=interval.arrival||'';
+  $('manualEndInput').value=interval.departure||'';
+  $('manualBreakInput').value=interval.breaks||'';
+  $('manualTipInput').value=rec&&rec.tip?moneyInput(parseMoney(rec.tip)):'';
+  updateManualPreview();
+  $('dayEditModal').classList.remove('hidden');
+  setTimeout(()=>$('manualStartInput').focus(),50);
+}
+function closeDayEditor(){editingDayKey=null;$('dayEditModal').classList.add('hidden')}
+function saveManualDay(){
+  if(!editingDayKey)return;
+  const start=$('manualStartInput').value.trim(), end=$('manualEndInput').value.trim(), brk=$('manualBreakInput').value.trim(), tip=parseMoney($('manualTipInput').value);
+  const mins=updateManualPreview();
+  if(!start||!end){msg('Bitte Beginn und Ende eintragen.','warn');return}
+  if(!mins){msg('Die berechnete Dauer ist 00:00. Bitte Zeiten prüfen.','warn');return}
+  const item=getMonth(currentKey);
+  let records=[...(item.records||[])].filter(r=>r.date!==editingDayKey);
+  records.push({date:editingDayKey,total:mins,intervals:[{arrival:start,departure:end,breaks:brk,duration:mins}],comments:'manuell',tip});
+  records.sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+  saveCurrentMonthRecords(records);
+  closeDayEditor();
+  renderMonth(currentKey);
+  msg('Arbeitszeit für <b>'+editingDayKey+'</b> gespeichert. Trinkgeld: <b>'+fm(tip)+'</b>.','ok');
+}
+function deleteManualDay(){
+  if(!editingDayKey)return;
+  const item=getMonth(currentKey);
+  const records=[...(item.records||[])].filter(r=>r.date!==editingDayKey);
+  saveCurrentMonthRecords(records);
+  closeDayEditor();
+  renderMonth(currentKey);
+  msg('Arbeitszeit für <b>'+editingDayKey+'</b> gelöscht.','ok');
+}
+
+function uploadCSVText(text,name){try{const rows=parseCSV(text);const records=rowsToRecords(rows);if(!records.length)throw new Error('Keine gültigen Arbeitszeit-Zeilen gefunden.');const filtered=records.filter(r=>makeKey(r.date.getFullYear(),r.date.getMonth()+1)===currentKey);const different=records.length-filtered.length;const useRecords=filtered.length?filtered:records;const firstKey=makeKey(useRecords[0].date.getFullYear(),useRecords[0].date.getMonth()+1);if(firstKey!==currentKey&&!confirm('Die CSV scheint zu '+monthLabel(firstKey)+' zu gehören. Trotzdem unter '+monthLabel(currentKey)+' speichern?'))return;const old=getMonth(currentKey);saveMonthData(currentKey,{records:toPlain(useRecords),paidMinutes:Number(old.paidMinutes)||0,hourlyRate:old.hourlyRate||'',taxAmount:old.taxAmount||'',payments:old.payments||[]});$('csvFile').value='';renderMonth(currentKey);let note='CSV gespeichert: <b>'+useRecords.length+'</b> Arbeitstag(e), <b>'+mt(useRecords.reduce((s,r)=>s+r.total,0))+'</b>.';if(different>0)note+=' '+different+' Zeile(n) aus anderen Monaten wurden ignoriert.';msg(note,'ok');debug('Spalten: '+(rows[0]||[]).join(' | ')+'\nDatensätze gelesen: '+records.length+'\nGespeichert: '+useRecords.length)}catch(e){msg('<b>Fehler:</b> '+e.message,'error');debug(e.stack||String(e))}}
+function savePaymentSettings(){const old=getMonth(currentKey);saveMonthData(currentKey,{records:old.records||[],paidMinutes:Number(old.paidMinutes)||0,hourlyRate:$('hourlyRateInput').value.trim(),taxAmount:old.taxAmount||'',payments:old.payments||[]});renderMonth(currentKey);msg('Stundenlohn gespeichert.','ok')}
+function resetPaymentForm(){editingPaymentId=null;$('paymentDateInput').value=keyDate(new Date());$('paymentPersonInput').value='';$('paymentHoursInput').value='';$('paymentTaxInput').value='';$('addPaymentBtn').textContent='Eintragen';$('cancelEditPaymentBtn').classList.add('hidden');updatePaymentPreview()}
+function addPayment(){const old=getMonth(currentKey);const hours=tmin($('paymentHoursInput').value);const rateText=($('paymentRateInput').value||old.hourlyRate||'').trim();const rate=parseMoney(rateText);const taxText=($('paymentTaxInput').value||'0').trim();const tax=parseMoney(taxText);if(!hours){msg('Bitte bezahlte Stunden eintragen.','warn');return}if(!rate){msg('Bitte €/Stunde eintragen.','warn');return}const p={id:editingPaymentId||String(Date.now()),date:$('paymentDateInput').value||keyDate(new Date()),person:$('paymentPersonInput').value.trim(),hours:hours,rate:rateText,tax:taxText};let payments=[...(old.payments||[])];if(editingPaymentId){payments=payments.map(x=>String(x.id)===String(editingPaymentId)?p:x)}else{payments.push(p)}saveMonthData(currentKey,{records:old.records||[],paidMinutes:Number(old.paidMinutes)||0,hourlyRate:old.hourlyRate||rateText,taxAmount:old.taxAmount||'',payments});const wasEdit=!!editingPaymentId;resetPaymentForm();renderMonth(currentKey);msg(wasEdit?'Zahlung wurde geändert.':'Zahlung eingetragen: <b>'+mt(hours)+'</b> × <b>'+fm(rate)+'</b> minus <b>'+fm(tax)+'</b> Steuer.','ok')}
+function editPayment(id){const old=getMonth(currentKey);const p=(old.payments||[]).find(x=>String(x.id)===String(id));if(!p){msg('Diese Zahlung wurde nicht gefunden.','warn');return}editingPaymentId=String(p.id);$('paymentDateInput').value=p.date||keyDate(new Date());$('paymentPersonInput').value=p.person||'';$('paymentHoursInput').value=mt(Number(p.hours)||0);$('paymentRateInput').value=p.rate||old.hourlyRate||'';$('paymentTaxInput').value=p.tax!==undefined?p.tax:(p.taxAmount||'');$('addPaymentBtn').textContent='Änderung speichern';$('cancelEditPaymentBtn').classList.remove('hidden');updatePaymentPreview();$('paymentDateInput').scrollIntoView({behavior:'smooth',block:'center'});msg('Zahlung im Bearbeitungsmodus. Nach der Änderung auf <b>Änderung speichern</b> klicken.','ok')}
+function deletePayment(id){const old=getMonth(currentKey);const payments=(old.payments||[]).filter(p=>String(p.id)!==String(id));saveMonthData(currentKey,{records:old.records||[],paidMinutes:Number(old.paidMinutes)||0,hourlyRate:old.hourlyRate||'',taxAmount:old.taxAmount||'',payments});if(String(editingPaymentId)===String(id))resetPaymentForm();renderMonth(currentKey);msg('Zahlung gelöscht.','ok')}
+function renderPaymentList(item){const list=$('paymentList');const pay=calcPayments(item);if(!pay.payments.length){list.innerHTML='<div class="emptyPay">Noch keine Zahlungen eingetragen.</div>';return}let html='<table><thead><tr><th>Datum</th><th>Von</th><th>Std.</th><th>€/Std.</th><th>Brutto</th><th>Steuer</th><th>Netto</th><th>Aktion</th></tr></thead><tbody>';pay.payments.forEach(p=>{html+='<tr><td>'+escapeHtml(p.date||'–')+'</td><td>'+escapeHtml(p.person||'–')+'</td><td>'+mt(p.hours)+'</td><td>'+fm(p.rate)+'</td><td>'+fm(p.pgross)+'</td><td>'+fm(p.tax)+'</td><td><b>'+fm(p.net)+'</b></td><td><button class="mini ghost" type="button" data-editpay="'+escapeHtml(p.id)+'">Bearbeiten</button> <button class="mini danger" type="button" data-delpay="'+escapeHtml(p.id)+'">×</button></td></tr>'});html+='</tbody></table>';list.innerHTML=html;list.querySelectorAll('[data-editpay]').forEach(btn=>btn.addEventListener('click',()=>editPayment(btn.getAttribute('data-editpay'))));list.querySelectorAll('[data-delpay]').forEach(btn=>btn.addEventListener('click',()=>deletePayment(btn.getAttribute('data-delpay'))))}
+
+
+function formatMonthShort(k){const p=parseKey(k);return MONTHS[p.m-1]+' '+p.y}
+function storedMonthKeysSorted(){
+  const db=readDB();
+  return Object.keys(db).filter(k=>/^\d{4}-\d{2}$/.test(k)&&inRange(k)).sort((a,b)=>monthIndex(a)-monthIndex(b));
+}
+function monthRangeFromFirstStored(){
+  const stored=storedMonthKeysSorted();
+  if(!stored.length)return [];
+  const first=stored[0];
+  const lastStored=stored[stored.length-1];
+  const end=monthIndex(currentKey)>monthIndex(lastStored)?currentKey:lastStored;
+  const keys=[];
+  let k=first;
+  while(inRange(k) && monthIndex(k)<=monthIndex(end)){
+    keys.push(k);
+    k=nextKey(k);
+  }
+  return keys;
+}
+function renderOverallReport(){
+  const keys=monthRangeFromFirstStored();
+  const wrap=$('overallReportTableWrap');
+  if(!keys.length){
+    wrap.innerHTML='<div class="emptyPay">Noch keine Daten gespeichert.</div>';
+    $('overallReportInfo').textContent='Keine gespeicherten Monate vorhanden.';
+    return;
+  }
+  let totalWork=0,totalGross=0,totalPaid=0,totalTip=0;
+  let firstCarryStd=0, firstCarryMoney=0, lastNextStd=0, lastNextMoney=0;
+  let rows='';
+  keys.forEach((k,idx)=>{
+    const item=getMonth(k);
+    const records=fromPlain(item.records);
+    const pay=calcPayments(item);
+    const tip=calcTips(records);
+    const carry=calcCarryover(k);
+    const currentHourDiff=(Number(pay.total)||0)-(Number(pay.paidHours)||0);
+    const nextStd=(Number(carry.hourDiff)||0)+currentHourDiff;
+    const nextMoney=(Number(carry.moneyDiff)||0)+(Number(pay.diff)||0);
+    if(idx===0){firstCarryStd=carry.hourDiff;firstCarryMoney=carry.moneyDiff}
+    lastNextStd=nextStd;lastNextMoney=nextMoney;
+    totalWork+=pay.total; totalGross+=pay.gross; totalPaid+=pay.paidMoney; totalTip+=tip;
+    const hasData=(records.length || (item.payments||[]).length || parseMoney(item.hourlyRate));
+    rows+='<tr'+(hasData?'':' class="mutedRow"')+'>'+
+      '<td>'+escapeHtml(formatMonthShort(k))+'</td>'+
+      '<td>'+mt(pay.total)+'<br><span class="muted">'+dh(pay.total)+'</span></td>'+
+      '<td>'+fm(pay.rate)+'</td>'+
+      '<td>'+fm(pay.gross)+'</td>'+
+      '<td>'+fm(pay.paidMoney)+'</td>'+
+      '<td>'+fm(tip)+'</td>'+
+      '<td>'+signedHours(carry.hourDiff)+'</td>'+
+      '<td class="'+(carry.moneyDiff>0?'diffPositive':carry.moneyDiff<0?'diffNegative':'diffZero')+'">'+signedMoney(carry.moneyDiff)+'</td>'+
+      '<td>'+signedHours(nextStd)+'</td>'+
+      '<td class="'+(nextMoney>0?'diffPositive':nextMoney<0?'diffNegative':'diffZero')+'">'+signedMoney(nextMoney)+'</td>'+
+    '</tr>';
+  });
+  rows+='<tr class="sumRow">'+
+    '<td>Summe</td>'+
+    '<td>'+mt(totalWork)+'<br><span>'+dh(totalWork)+'</span></td>'+
+    '<td>–</td>'+
+    '<td>'+fm(totalGross)+'</td>'+
+    '<td>'+fm(totalPaid)+'</td>'+
+    '<td>'+fm(totalTip)+'</td>'+
+    '<td>'+signedHours(firstCarryStd)+'</td>'+
+    '<td>'+signedMoney(firstCarryMoney)+'</td>'+
+    '<td>'+signedHours(lastNextStd)+'</td>'+
+    '<td>'+signedMoney(lastNextMoney)+'</td>'+
+  '</tr>';
+  wrap.innerHTML='<table class="overallTable"><thead><tr>'+
+    '<th>Monat</th>'+
+    '<th>Arbeitszeit<br>monatlich</th>'+
+    '<th>Stundenlohn</th>'+
+    '<th>Gesamtlohn<br>brutto</th>'+
+    '<th>Summe<br>Zahlung</th>'+
+    '<th>Trinkgeld<br>monatlich</th>'+
+    '<th>Übertrag Std.<br>Vormonat</th>'+
+    '<th>Übertrag Lohn<br>Vormonat</th>'+
+    '<th>Übertrag Std.<br>nächster Monat</th>'+
+    '<th>Übertrag Lohn<br>nächster Monat</th>'+
+    '</tr></thead><tbody>'+rows+'</tbody></table>';
+  $('overallReportInfo').textContent='Zeitraum: '+formatMonthShort(keys[0])+' bis '+formatMonthShort(keys[keys.length-1])+' · gespeicherte / berechnete Monate: '+keys.length;
+}
+function openOverallReport(){
+  renderOverallReport();
+  document.body.classList.add('overall-view');
+  $('overallReportPage').classList.remove('hidden');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function closeOverallReport(){
+  document.body.classList.remove('overall-view');
+  $('overallReportPage').classList.add('hidden');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function printOverallReport(){
+  renderOverallReport();
+  document.body.classList.add('overall-report-print');
+  setTimeout(()=>{window.print();setTimeout(()=>document.body.classList.remove('overall-report-print'),500)},50);
+}
+
+function deleteMonth(){const db=readDB();if(!db[currentKey]){msg('Für '+monthLabel(currentKey)+' sind keine Daten gespeichert.','warn');return}if(!confirm('Alle Daten für '+monthLabel(currentKey)+' löschen?'))return;delete db[currentKey];writeDB(db);renderMonth(currentKey);msg('Daten für <b>'+monthLabel(currentKey)+'</b> wurden gelöscht.','ok')}
+async function exportDB(){
+  const db=readDB();
+  const fileName='planningify_arbeitszeit_backup_'+new Date().toISOString().slice(0,10)+'.json';
+  const blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'});
+
+  // Chrome / Edge Desktop: öffnet ein echtes Speichern-Dialogfenster,
+  // in dem Name UND Speicherort manuell gewählt werden können.
+  if(window.showSaveFilePicker){
+    try{
+      const handle=await window.showSaveFilePicker({
+        suggestedName:fileName,
+        types:[{
+          description:'Planningify Backup JSON',
+          accept:{'application/json':['.json']}
+        }]
+      });
+      const writable=await handle.createWritable();
+      await writable.write(blob);
+      await writable.close();
+      alert('Backup wurde gespeichert.');
+      return;
+    }catch(err){
+      if(err && err.name==='AbortError') return;
+      console.error(err);
+      alert('Der Speichern-Dialog konnte nicht geöffnet werden. Es wird die normale Download-Funktion verwendet.');
+    }
+  }
+
+  // Fallback für Browser ohne showSaveFilePicker, z. B. Safari/iPhone/Firefox.
+  // Dort kann JavaScript keinen beliebigen Speicherpfad erzwingen.
+  const typedName=prompt('Dateiname für Backup eingeben:',fileName);
+  if(!typedName) return;
+  const safeName=typedName.toLowerCase().endsWith('.json')?typedName:typedName+'.json';
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=safeName;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500);
+}
+function importDBText(text){try{const incoming=JSON.parse(text);if(!incoming||typeof incoming!=='object')throw new Error('Ungültige JSON-Datei.');const db=readDB();let count=0;Object.keys(incoming).forEach(k=>{if(/^\d{4}-\d{2}$/.test(k)){db[k]={...blankMonth(k),...incoming[k]};count++}});writeDB(db);renderMonth(currentKey);msg('<b>'+count+'</b> Monat(e) importiert.','ok')}catch(e){msg('Backup konnte nicht importiert werden: '+e.message,'error')}}
+$('prevMonthBtn').addEventListener('click',()=>{const k=prevKey(currentKey);if(inRange(k))openMonth(k,false)});
+$('nextMonthBtn').addEventListener('click',()=>{const k=nextKey(currentKey);if(inRange(k))openMonth(k,false)});
+$('csvFile').addEventListener('change',function(){const f=this.files&&this.files[0];if(!f){msg('Keine Datei ausgewählt.','warn');return}const r=new FileReader();r.onload=e=>uploadCSVText(e.target.result,f.name);r.onerror=()=>msg('Die Datei konnte nicht gelesen werden.','error');r.readAsText(f,'UTF-8')});
+$('savePaymentSettingsBtn').addEventListener('click',savePaymentSettings);
+$('addPaymentBtn').addEventListener('click',addPayment);
+$('cancelEditPaymentBtn').addEventListener('click',()=>{resetPaymentForm();msg('Bearbeitung abgebrochen.','ok')});
+['paymentHoursInput','paymentRateInput','paymentTaxInput'].forEach(id=>$(id).addEventListener('input',updatePaymentPreview));
+['manualStartInput','manualEndInput','manualBreakInput'].forEach(id=>$(id).addEventListener('input',updateManualPreview));
+$('backupDownloadBtn').addEventListener('click',exportDB);
+$('openOverallReportBtn').addEventListener('click',openOverallReport);
+$('overallBackBtn').addEventListener('click',closeOverallReport);
+$('overallPdfBtn').addEventListener('click',printOverallReport);
+$('backupUploadFile').addEventListener('change',function(){const f=this.files&&this.files[0];if(!f){msg('Keine Backup-Datei ausgewählt.','warn');return}const r=new FileReader();r.onload=e=>{importDBText(e.target.result);this.value=''};r.onerror=()=>msg('Backup-Datei konnte nicht gelesen werden.','error');r.readAsText(f,'UTF-8')});
+$('saveManualDayBtn').addEventListener('click',saveManualDay);
+$('deleteManualDayBtn').addEventListener('click',deleteManualDay);
+$('cancelManualDayBtn').addEventListener('click',closeDayEditor);
+$('dayEditModal').addEventListener('click',e=>{if(e.target.id==='dayEditModal')closeDayEditor()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('dayEditModal').classList.contains('hidden'))closeDayEditor()});
+$('paymentDateInput').value=keyDate(new Date());
+openMonth(localMonthKey(),true);
+initOnlineSync();
+})();
+</script>
+
+<script>
+if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('./service-worker.js').catch(function (err) {
+      console.warn('Service Worker konnte nicht registriert werden:', err);
+    });
+  });
+}
+</script>
+</body>
+</html>
