@@ -9,9 +9,10 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Dominos Arbeitszeit">
 <meta name="theme-color" content="#1f2023">
-<link rel="manifest" href="manifest.webmanifest">
-<link rel="apple-touch-icon" href="icon-180.png">
-<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="manifest" href="manifest.webmanifest?v=36">
+<link rel="apple-touch-icon" href="icon-v36-180.png?v=36">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-v36-192.png?v=36">
+<link rel="icon" type="image/png" sizes="512x512" href="icon-v36-512.png?v=36">
 
 <style>
 :root{
@@ -405,7 +406,8 @@ body.overall-view #overallReportPage{display:block!important}
 const STORAGE_KEY='planningifyArbeitszeitDB_v10_layout';
 const OLD_KEYS=['planningifyArbeitszeitDB_v7_lokal_clean','planningifyArbeitszeitDB_v6_clean','planningifyArbeitszeitDB_v5_balance','planningifyArbeitszeitDB_v4'];
 
-/* v33: Online-Sync mit Supabase + schneller Geräte-Abgleich.
+/* v34: Online-Sync Remote-Wins + Realtime + 3s Polling.
+   v33: Online-Sync mit Supabase + schneller Geräte-Abgleich.
    Änderungen von Handy/Laptop werden automatisch regelmäßig online geladen.
 
    v30: Online-Sync mit Supabase.
@@ -502,6 +504,24 @@ async function uploadOnlineDB(db){
     msg('Online-Sync Upload fehlgeschlagen. Lokal wurde trotzdem gespeichert.','warn');
   }
 }
+function applyRemoteDB(remoteDB, showStatus=false){
+  const remote = remoteDB && typeof remoteDB === 'object' ? remoteDB : {};
+  const remoteStr = JSON.stringify(remote);
+  const localStr = localStorage.getItem(STORAGE_KEY) || '{}';
+
+  // Wichtig: Bei Online-Betrieb gewinnt die Supabase-Version.
+  // Sonst kann ein Desktop mit alten lokalen Daten die neuen Handy-Daten wieder überschreiben.
+  if(remoteStr !== localStr){
+    suppressOnlineUpload = true;
+    localStorage.setItem(STORAGE_KEY, remoteStr);
+    suppressOnlineUpload = false;
+    if(currentKey) renderMonth(currentKey);
+    if(showStatus) msg('Online-Daten wurden geladen.','ok');
+    return true;
+  }
+  if(showStatus) msg('Online-Sync aktiv. Daten sind aktuell.','ok');
+  return false;
+}
 async function downloadOnlineDB(showStatus=false){
   const client=getSupabaseClient();
   if(!client)return;
@@ -510,13 +530,7 @@ async function downloadOnlineDB(showStatus=false){
     if(error)throw error;
     const local=readDB();
     if(data&&data.data){
-      const merged=mergeDB(local,data.data||{});
-      suppressOnlineUpload=true;
-      localStorage.setItem(STORAGE_KEY,JSON.stringify(merged));
-      suppressOnlineUpload=false;
-      await uploadOnlineDB(merged);
-      if(currentKey)renderMonth(currentKey);
-      if(showStatus)msg('Online-Daten wurden geladen und synchronisiert.','ok');
+      applyRemoteDB(data.data||{}, showStatus);
     }else{
       await uploadOnlineDB(local);
       if(showStatus)msg('Online-Datensatz wurde neu erstellt.','ok');
@@ -527,12 +541,36 @@ async function downloadOnlineDB(showStatus=false){
     if(showStatus)msg('Online-Sync konnte nicht geladen werden: '+escapeHtml(e.message||String(e)),'error');
   }
 }
+function startRealtimeSync(){
+  const client=getSupabaseClient();
+  if(!client || !client.channel || window.__planningifyRealtimeStarted)return;
+  window.__planningifyRealtimeStarted=true;
+  try{
+    client.channel('planningify-store-sync-v34')
+      .on('postgres_changes', {
+        event:'*',
+        schema:'public',
+        table:SUPABASE_TABLE,
+        filter:'id=eq.'+SUPABASE_STORE_ID
+      }, payload=>{
+        if(payload && payload.new && payload.new.data){
+          applyRemoteDB(payload.new.data, false);
+        }else{
+          downloadOnlineDB(false);
+        }
+      })
+      .subscribe();
+  }catch(e){
+    console.warn('Realtime Sync konnte nicht gestartet werden:', e);
+  }
+}
 async function initOnlineSync(){
   if(!isSupabaseConfigured())return;
   onlineSyncActive=true;
   await downloadOnlineDB(true);
-  // Schneller automatischer Abgleich zwischen Handy und Desktop-App.
-  setInterval(()=>downloadOnlineDB(false),5000);
+  startRealtimeSync();
+  // Fallback: Auch ohne Realtime wird alle 3 Sekunden online neu geladen.
+  setInterval(()=>downloadOnlineDB(false),3000);
   window.addEventListener('focus',()=>downloadOnlineDB(false));
   window.addEventListener('online',()=>downloadOnlineDB(false));
   window.addEventListener('pageshow',()=>downloadOnlineDB(false));

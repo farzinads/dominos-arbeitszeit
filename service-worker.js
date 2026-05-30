@@ -1,5 +1,5 @@
-const CACHE_NAME = 'dominos-arbeitszeit-v33';
-const CORE_ASSETS = ['./', './index.html', './manifest.webmanifest', './icon-180.png', './icon-192.png', './icon-512.png'];
+const CACHE_NAME = 'dominos-arbeitszeit-v36';
+const CORE_ASSETS = ['./', './index.html', './manifest.webmanifest', './icon-v36-180.png', './icon-v36-192.png', './icon-v36-512.png'];
 
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(CORE_ASSETS)));
@@ -13,13 +13,18 @@ self.addEventListener('activate', event => {
 
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
-
   const url = new URL(event.request.url);
 
-  // HTML همیشه اول از اینترنت گرفته شود تا نسخه قدیمی Cache نشود.
+  // Supabase und CDN nie cachen.
+  if (url.hostname.includes('supabase.co') || url.hostname.includes('jsdelivr.net')) {
+    event.respondWith(fetch(event.request));
+    return;
+  }
+
+  // App-Shell immer zuerst online laden, fallback aus Cache.
   if (event.request.mode === 'navigate' || url.pathname.endsWith('/index.html') || url.pathname.endsWith('/')) {
     event.respondWith(
-      fetch(event.request)
+      fetch(event.request, { cache: 'no-store' })
         .then(response => {
           const copy = response.clone();
           caches.open(CACHE_NAME).then(cache => cache.put('./index.html', copy));
@@ -31,10 +36,12 @@ self.addEventListener('fetch', event => {
   }
 
   event.respondWith(
-    caches.match(event.request).then(cached => cached || fetch(event.request).then(response => {
-      const copy = response.clone();
-      caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
-      return response;
-    }))
+    fetch(event.request, { cache: 'no-store' })
+      .then(response => {
+        const copy = response.clone();
+        caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
+        return response;
+      })
+      .catch(() => caches.match(event.request))
   );
 });

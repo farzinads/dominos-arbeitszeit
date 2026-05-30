@@ -1,12 +1,19 @@
-Dominos Arbeitszeit PWA v33
+Planningify / Dominos Arbeitszeit PWA v34
 
-Änderung gegenüber v32:
-- Automatischer Online-Abgleich alle 5 Sekunden.
-- Beim Öffnen/Fokus der Desktop-App werden Supabase-Daten sofort neu geladen.
-- Service Worker Cache wurde aktualisiert, damit Edge/iPhone nicht dauerhaft eine alte Version behalten.
+Änderung v34:
+- Supabase-Daten gewinnen beim automatischen Download.
+- Desktop-App überschreibt Handy-Daten nicht mehr mit alten lokalen Daten.
+- Auto-Sync alle 3 Sekunden.
+- Realtime-Sync wird zusätzlich versucht.
+- Service Worker Cache wurde auf v34 erhöht.
 
-Upload in GitHub:
-1. Alle Dateien dieses Ordners in das Repository hochladen.
-2. Commit changes.
-3. Vercel startet automatisch ein neues Deployment.
-4. Danach Desktop-App einmal komplett schließen und neu öffnen.
+Wichtig nach Upload auf GitHub/Vercel:
+1. Warten, bis Vercel fertig deployt hat.
+2. Desktop-App komplett schließen und neu öffnen.
+3. Falls alte Version bleibt: Edge -> edge://apps -> App deinstallieren -> Website erneut als App installieren.
+
+
+Version v35: Force Sync wie v34, aber mit neuem orange/goldenem Arbeitszeit-Icon und neuen Icon-Dateinamen gegen Browser-Cache.
+
+
+Version v36: neue Dominos-Pizza Icon-Dateien integriert.
