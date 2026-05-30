@@ -1,14 +1,12 @@
-Dominos Arbeitszeit – PWA Version
+Dominos Arbeitszeit PWA v33
 
-Diese Version ist für iPhone Home Screen vorbereitet.
+Änderung gegenüber v32:
+- Automatischer Online-Abgleich alle 5 Sekunden.
+- Beim Öffnen/Fokus der Desktop-App werden Supabase-Daten sofort neu geladen.
+- Service Worker Cache wurde aktualisiert, damit Edge/iPhone nicht dauerhaft eine alte Version behalten.
 
-Wichtig:
-- Direkt als lokale Datei funktioniert die Home-Screen-App nur eingeschränkt.
-- Für die beste Nutzung muss dieser Ordner online veröffentlicht werden, z. B. mit Vercel oder Netlify.
-- Danach den Link im iPhone mit Safari öffnen und Teilen > Zum Home-Bildschirm wählen.
-
-Dateien:
-- index.html
-- manifest.webmanifest
-- service-worker.js
-- icon-180.png / icon-192.png / icon-512.png
+Upload in GitHub:
+1. Alle Dateien dieses Ordners in das Repository hochladen.
+2. Commit changes.
+3. Vercel startet automatisch ein neues Deployment.
+4. Danach Desktop-App einmal komplett schließen und neu öffnen.
