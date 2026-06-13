@@ -134,7 +134,7 @@ body.overall-view .wrap{padding:10px!important}
 .overallActions{display:flex;gap:6px;flex-wrap:wrap}
 .overallInfo{font-size:11px;color:var(--muted);margin-bottom:8px}
 .overallTableWrap{overflow:auto;border:1px solid var(--line);border-radius:10px;background:#25272d}
-.overallTable{width:100%;border-collapse:collapse;font-size:10.5px;min-width:1180px}
+.overallTable{width:100%;border-collapse:collapse;font-size:10.5px;min-width:1280px}
 .overallTable th,.overallTable td{border-bottom:1px solid #4f545e;border-right:1px solid #3f444d;padding:7px 6px;text-align:right;vertical-align:middle;white-space:nowrap}
 .overallTable th:first-child,.overallTable td:first-child{text-align:left;position:sticky;left:0;background:#25272d;z-index:1}
 .overallTable th{color:var(--muted);background:#2b2d31;font-weight:900;position:sticky;top:0;z-index:2}
@@ -183,16 +183,17 @@ body.overall-view #overallReportPage{display:block!important}
   }
   body.overall-report-print .overallTable th,
   body.overall-report-print .overallTable td{border:1px solid #777!important;padding:3px 3px!important;color:#111!important;background:white!important;position:static!important;white-space:normal!important;word-break:normal!important;overflow-wrap:anywhere!important}
-  body.overall-report-print .overallTable th:nth-child(1), body.overall-report-print .overallTable td:nth-child(1){width:9%!important}
-  body.overall-report-print .overallTable th:nth-child(2), body.overall-report-print .overallTable td:nth-child(2){width:11%!important}
-  body.overall-report-print .overallTable th:nth-child(3), body.overall-report-print .overallTable td:nth-child(3){width:9%!important}
-  body.overall-report-print .overallTable th:nth-child(4), body.overall-report-print .overallTable td:nth-child(4){width:11%!important}
+  body.overall-report-print .overallTable th:nth-child(1), body.overall-report-print .overallTable td:nth-child(1){width:8%!important}
+  body.overall-report-print .overallTable th:nth-child(2), body.overall-report-print .overallTable td:nth-child(2){width:8%!important}
+  body.overall-report-print .overallTable th:nth-child(3), body.overall-report-print .overallTable td:nth-child(3){width:10%!important}
+  body.overall-report-print .overallTable th:nth-child(4), body.overall-report-print .overallTable td:nth-child(4){width:8%!important}
   body.overall-report-print .overallTable th:nth-child(5), body.overall-report-print .overallTable td:nth-child(5){width:10%!important}
-  body.overall-report-print .overallTable th:nth-child(6), body.overall-report-print .overallTable td:nth-child(6){width:10%!important}
-  body.overall-report-print .overallTable th:nth-child(7), body.overall-report-print .overallTable td:nth-child(7){width:10%!important}
-  body.overall-report-print .overallTable th:nth-child(8), body.overall-report-print .overallTable td:nth-child(8){width:10%!important}
-  body.overall-report-print .overallTable th:nth-child(9), body.overall-report-print .overallTable td:nth-child(9){width:10%!important}
+  body.overall-report-print .overallTable th:nth-child(6), body.overall-report-print .overallTable td:nth-child(6){width:9%!important}
+  body.overall-report-print .overallTable th:nth-child(7), body.overall-report-print .overallTable td:nth-child(7){width:9%!important}
+  body.overall-report-print .overallTable th:nth-child(8), body.overall-report-print .overallTable td:nth-child(8){width:9%!important}
+  body.overall-report-print .overallTable th:nth-child(9), body.overall-report-print .overallTable td:nth-child(9){width:9%!important}
   body.overall-report-print .overallTable th:nth-child(10), body.overall-report-print .overallTable td:nth-child(10){width:10%!important}
+  body.overall-report-print .overallTable th:nth-child(11), body.overall-report-print .overallTable td:nth-child(11){width:10%!important}
   body.overall-report-print .overallTable th{background:#eee!important;font-weight:900!important}
   body.overall-report-print .overallTable .sumRow td{background:#eee!important;color:#111!important;font-weight:900!important}
   @page{size:A4 landscape;margin:8mm}
@@ -889,6 +890,7 @@ function renderOverallReport(){
     const hasData=(records.length || pay.payments.length || parseMoney(item.hourlyRate));
     rows+='<tr'+(hasData?'':' class="mutedRow"')+'>'+
       '<td>'+escapeHtml(formatMonthShort(k))+'</td>'+
+      '<td>'+escapeHtml(formatMonthShort(k))+'</td>'+
       '<td>'+mt(pay.total)+'<br><span class="muted">'+dh(pay.total)+'</span></td>'+
       '<td>'+fm(pay.rate)+'</td>'+
       '<td>'+fm(pay.gross)+'</td>'+
@@ -902,6 +904,7 @@ function renderOverallReport(){
   });
   rows+='<tr class="sumRow">'+
     '<td>Summe</td>'+
+    '<td>–</td>'+
     '<td>'+mt(totalWork)+'<br><span>'+dh(totalWork)+'</span></td>'+
     '<td>–</td>'+
     '<td>'+fm(totalGross)+'</td>'+
@@ -914,6 +917,7 @@ function renderOverallReport(){
   '</tr>';
   wrap.innerHTML='<table class="overallTable"><thead><tr>'+
     '<th>Monat</th>'+
+    '<th>Für Monat</th>'+
     '<th>Arbeitszeit<br>monatlich</th>'+
     '<th>Stundenlohn</th>'+
     '<th>Gesamtlohn<br>brutto</th>'+
