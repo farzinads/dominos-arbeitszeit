@@ -155,13 +155,21 @@ body.overall-report-print .wrap{background:white!important}
 body.overall-report-print #overallReportPage{background:white!important;color:#111!important}
 @media print{
   html{background:white!important}
+  body.overall-view,
   body.overall-report-print{background:white!important;color:#111!important}
+  body.overall-view .wrap > :not(.overallReportPage),
   body.overall-report-print .wrap > :not(.overallReportPage){display:none!important}
+  body.overall-view .overallReportPage,
   body.overall-report-print .overallReportPage{display:block!important;margin:0!important;color:#111!important;background:white!important}
+  body.overall-view .overallActions,
   body.overall-report-print .overallActions{display:none!important}
+  body.overall-view .overallReportHead,
   body.overall-report-print .overallReportHead{border-bottom:2px solid #111;padding-bottom:5px;margin-bottom:7px}
+  body.overall-view .overallReportHead h2,
   body.overall-report-print .overallReportHead h2{color:#111!important;font-size:17px!important}
+  body.overall-view .overallInfo,
   body.overall-report-print .overallInfo{color:#333!important;font-size:9.8px!important}
+  body.overall-view .overallReportPage,
   body.overall-report-print .overallReportPage{
     display:block!important;
     margin:0!important;
@@ -173,6 +181,7 @@ body.overall-report-print #overallReportPage{background:white!important;color:#1
     border:0!important;
     box-shadow:none!important;
   }
+  body.overall-view .overallTableWrap,
   body.overall-report-print .overallTableWrap{
     width:100%!important;
     max-width:100%!important;
@@ -180,6 +189,7 @@ body.overall-report-print #overallReportPage{background:white!important;color:#1
     overflow:visible!important;
     background:white!important;
   }
+  body.overall-view .overallTable,
   body.overall-report-print .overallTable{
     min-width:0!important;
     width:100%!important;
@@ -187,22 +197,39 @@ body.overall-report-print #overallReportPage{background:white!important;color:#1
     table-layout:fixed!important;
     font-size:8.2px!important;
   }
+  body.overall-view .overallTable th,
+  body.overall-view .overallTable td,
   body.overall-report-print .overallTable th,
   body.overall-report-print .overallTable td{border:1px solid #777!important;padding:3px 3px!important;color:#111!important;background:white!important;position:static!important;white-space:normal!important;word-break:normal!important;overflow-wrap:anywhere!important}
+  body.overall-view .overallTable th:nth-child(1), body.overall-view .overallTable td:nth-child(1),
   body.overall-report-print .overallTable th:nth-child(1), body.overall-report-print .overallTable td:nth-child(1){width:7%!important}
+  body.overall-view .overallTable th:nth-child(2), body.overall-view .overallTable td:nth-child(2),
   body.overall-report-print .overallTable th:nth-child(2), body.overall-report-print .overallTable td:nth-child(2){width:7%!important}
+  body.overall-view .overallTable th:nth-child(3), body.overall-view .overallTable td:nth-child(3),
   body.overall-report-print .overallTable th:nth-child(3), body.overall-report-print .overallTable td:nth-child(3){width:8%!important}
+  body.overall-view .overallTable th:nth-child(4), body.overall-view .overallTable td:nth-child(4),
   body.overall-report-print .overallTable th:nth-child(4), body.overall-report-print .overallTable td:nth-child(4){width:7%!important}
+  body.overall-view .overallTable th:nth-child(5), body.overall-view .overallTable td:nth-child(5),
   body.overall-report-print .overallTable th:nth-child(5), body.overall-report-print .overallTable td:nth-child(5){width:8%!important}
+  body.overall-view .overallTable th:nth-child(6), body.overall-view .overallTable td:nth-child(6),
   body.overall-report-print .overallTable th:nth-child(6), body.overall-report-print .overallTable td:nth-child(6){width:8%!important}
+  body.overall-view .overallTable th:nth-child(7), body.overall-view .overallTable td:nth-child(7),
   body.overall-report-print .overallTable th:nth-child(7), body.overall-report-print .overallTable td:nth-child(7){width:8%!important}
+  body.overall-view .overallTable th:nth-child(8), body.overall-view .overallTable td:nth-child(8),
   body.overall-report-print .overallTable th:nth-child(8), body.overall-report-print .overallTable td:nth-child(8){width:8%!important}
+  body.overall-view .overallTable th:nth-child(9), body.overall-view .overallTable td:nth-child(9),
   body.overall-report-print .overallTable th:nth-child(9), body.overall-report-print .overallTable td:nth-child(9){width:7%!important}
+  body.overall-view .overallTable th:nth-child(10), body.overall-view .overallTable td:nth-child(10),
   body.overall-report-print .overallTable th:nth-child(10), body.overall-report-print .overallTable td:nth-child(10){width:8%!important}
+  body.overall-view .overallTable th:nth-child(11), body.overall-view .overallTable td:nth-child(11),
   body.overall-report-print .overallTable th:nth-child(11), body.overall-report-print .overallTable td:nth-child(11){width:8%!important}
+  body.overall-view .overallTable th:nth-child(12), body.overall-view .overallTable td:nth-child(12),
   body.overall-report-print .overallTable th:nth-child(12), body.overall-report-print .overallTable td:nth-child(12){width:8%!important}
+  body.overall-view .overallTable th:nth-child(13), body.overall-view .overallTable td:nth-child(13),
   body.overall-report-print .overallTable th:nth-child(13), body.overall-report-print .overallTable td:nth-child(13){width:8%!important}
+  body.overall-view .overallTable th,
   body.overall-report-print .overallTable th{background:#eee!important;font-weight:900!important}
+  body.overall-view .overallTable .sumRow td,
   body.overall-report-print .overallTable .sumRow td{background:#eee!important;color:#111!important;font-weight:900!important}
   @page{size:A4 landscape;margin:8mm}
 }
@@ -968,11 +995,9 @@ function printOverallReport(){
   document.documentElement.classList.add('overall-report-print-page');
   const cleanup=()=>{document.body.classList.remove('overall-report-print');document.documentElement.classList.remove('overall-report-print-page')};
   window.addEventListener('afterprint',cleanup,{once:true});
+  window.addEventListener('focus',cleanup,{once:true});
   setTimeout(()=>{
     window.print();
-    setTimeout(()=>{
-      if(document.hasFocus())cleanup();
-    },3000);
   },120);
 }
 
