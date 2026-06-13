@@ -888,9 +888,11 @@ function renderOverallReport(){
     lastNextStd=nextStd;lastNextMoney=nextMoney;
     totalWork+=pay.total; totalGross+=pay.gross; totalPaid+=pay.paidMoney; totalTip+=tip;
     const hasData=(records.length || pay.payments.length || parseMoney(item.hourlyRate));
+    const paymentDates=pay.payments.map(p=>p.date).filter(Boolean);
+    const paymentDateText=paymentDates.length?paymentDates.map(escapeHtml).join('<br>'):'–';
     rows+='<tr'+(hasData?'':' class="mutedRow"')+'>'+
       '<td>'+escapeHtml(formatMonthShort(k))+'</td>'+
-      '<td>'+escapeHtml(formatMonthShort(k))+'</td>'+
+      '<td>'+paymentDateText+'</td>'+
       '<td>'+mt(pay.total)+'<br><span class="muted">'+dh(pay.total)+'</span></td>'+
       '<td>'+fm(pay.rate)+'</td>'+
       '<td>'+fm(pay.gross)+'</td>'+
@@ -916,8 +918,8 @@ function renderOverallReport(){
     '<td>'+signedMoney(lastNextMoney)+'</td>'+
   '</tr>';
   wrap.innerHTML='<table class="overallTable"><thead><tr>'+
-    '<th>Monat</th>'+
     '<th>Für Monat</th>'+
+    '<th>Datum<br>Zahlung</th>'+
     '<th>Arbeitszeit<br>monatlich</th>'+
     '<th>Stundenlohn</th>'+
     '<th>Gesamtlohn<br>brutto</th>'+
