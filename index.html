@@ -150,7 +150,11 @@ body.overall-view > .wrap > section.panel:not(#overallReportPage),
 body.overall-view .main,
 body.overall-view #printReport{display:none!important}
 body.overall-view #overallReportPage{display:block!important}
+html.overall-report-print-page,body.overall-report-print{background:white!important;color:#111!important}
+body.overall-report-print .wrap{background:white!important}
+body.overall-report-print #overallReportPage{background:white!important;color:#111!important}
 @media print{
+  html{background:white!important}
   body.overall-report-print{background:white!important;color:#111!important}
   body.overall-report-print .wrap > :not(.overallReportPage){display:none!important}
   body.overall-report-print .overallReportPage{display:block!important;margin:0!important;color:#111!important;background:white!important}
@@ -961,7 +965,15 @@ function closeOverallReport(){
 function printOverallReport(){
   renderOverallReport();
   document.body.classList.add('overall-report-print');
-  setTimeout(()=>{window.print();setTimeout(()=>document.body.classList.remove('overall-report-print'),500)},50);
+  document.documentElement.classList.add('overall-report-print-page');
+  const cleanup=()=>{document.body.classList.remove('overall-report-print');document.documentElement.classList.remove('overall-report-print-page')};
+  window.addEventListener('afterprint',cleanup,{once:true});
+  setTimeout(()=>{
+    window.print();
+    setTimeout(()=>{
+      if(document.hasFocus())cleanup();
+    },3000);
+  },120);
 }
 
 function deleteMonth(){const db=readDB();if(!db[currentKey]){msg('Für '+monthLabel(currentKey)+' sind keine Daten gespeichert.','warn');return}if(!confirm('Alle Daten für '+monthLabel(currentKey)+' löschen?'))return;delete db[currentKey];writeDB(db);renderMonth(currentKey);msg('Daten für <b>'+monthLabel(currentKey)+'</b> wurden gelöscht.','ok')}
