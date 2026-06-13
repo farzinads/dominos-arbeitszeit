@@ -17,3 +17,7 @@ Version v35: Force Sync wie v34, aber mit neuem orange/goldenem Arbeitszeit-Icon
 
 
 Version v36: neue Dominos-Pizza Icon-Dateien integriert.
+
+https://vercel.com/farzin-s-projects4/dominos-arbeitszeit-l5lw/settings/domains
+https://github.com/farzinads/dominos-arbeitszeit
+https://supabase.com/dashboard/project/ysyamwabsqbydywhufyn/sql/eaa95567-21e4-40cf-b68b-7c709a378941
